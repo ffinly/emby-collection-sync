@@ -13,15 +13,15 @@
 ### 🔗 线上公开最新榜单列表
 以下 TMDB 列表完全由自动化爬虫与 ETL 流水线自动维护。**系统会在每天早上 7:30 (UTC+8) 定时执行数据抓取、比对与同步更新**，确保榜单排名与官方时刻保持一致。
 
-#### 🏆 核心主榜单
+#### 🏆 第一/二梯队：大众必看与影史殿堂
 * 🍿 **IMDb Top 250 Movies**: [查看网格墙视图](https://www.themoviedb.org/list/8647021?view=grid)
 * 📺 **IMDb Top 250 TV Shows**: [查看网格墙视图](https://www.themoviedb.org/list/8647022?view=grid)
 * 🎞️ **豆瓣电影 Top 250**: [查看网格墙视图](https://www.themoviedb.org/list/8647023?view=grid)
-* 🎬 **Letterboxd's Top 500 Films**: [查看网格墙视图](https://www.themoviedb.org/list/8648802?view=grid)
-* 🎥 **TSPDT - 1000 Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8648821?view=grid)
-* 🎬 **1001 Movies You Must See Before You Die**: [查看网格墙视图](https://www.themoviedb.org/list/8649029?view=grid)
+* 🏛️ **S&S Directors - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649058?view=grid)
+* 🏛️ **S&S Critics - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649050?view=grid)
+* ⭐ **AFI Top 100 (2007)**: [查看网格墙视图](https://www.themoviedb.org/list/8649041?view=grid)
 
-#### 🌍 全球最具含金量电影大奖矩阵
+#### 🌍 第三梯队：全球最具含金量大奖矩阵
 * 🏆 **奥斯卡历届最佳影片**: [查看网格墙视图](https://www.themoviedb.org/list/8648843?view=grid)
 * 🌿 **戛纳电影节金棕榈奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648844?view=grid)
 * 🎭 **英国电影学院奖最佳影片**: [查看网格墙视图](https://www.themoviedb.org/list/8648848?view=grid)
@@ -32,7 +32,24 @@
 * 🦁 **威尼斯电影节金狮奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648854?view=grid)
 * 🍁 **多伦多电影节人民选择奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648855?view=grid)
 
-#### 📈 实时口碑与趋势榜 (Trending & Popular)
+#### 🎬 第四梯队：高阶影迷社区与名家策展
+* 🎬 **LB Top 500 Films**: [查看网格墙视图](https://www.themoviedb.org/list/8648802?view=grid)
+* 🔥 **LB Top 250 Films with the Most Fans**: [查看网格墙视图](https://www.themoviedb.org/list/8649224?view=grid)
+* 🎨 **LB Top 250 Animated Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649225?view=grid)
+* 📽️ **LB Top 250 Documentary Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649231?view=grid)
+* 📝 **Roger Ebert's Great Movies**: [查看网格墙视图](https://www.themoviedb.org/list/8649219?view=grid)
+
+#### 📚 第五梯队：超大体量洗版底仓
+* 🎥 **TSPDT - 1000 Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8648821?view=grid)
+* 📖 **1001 Movies You Must See Before You Die**: [查看网格墙视图](https://www.themoviedb.org/list/8649029?view=grid)
+* 💽 **Criterion Collection**: [查看网格墙视图](https://www.themoviedb.org/list/8649108?view=grid)
+
+#### ✨ 第六梯队：现代独立与流行厂牌
+* ✨ **Every A24 Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649217?view=grid)
+* 🔴 **Every NEON Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649218?view=grid)
+* 🎞️ **Every MUBI Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649220?view=grid)
+
+#### 📈 第七梯队：实时口碑与趋势榜 (Trending & Popular)
 * 📈 **豆瓣 - 一周口碑电影榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648547?view=grid)
 * 📺 **豆瓣 - 华语口碑剧集榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648548?view=grid)
 * 🌍 **豆瓣 - 全球口碑剧集榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648549?view=grid)
@@ -121,15 +138,15 @@ Seamlessly synchronize authoritative lists like IMDb/Douban Top 250/Letterboxd/T
 ### 🔗 Publicly Maintained TMDb Lists
 The following TMDb lists are fully maintained by automated crawlers and ETL pipelines. **Data fetching, comparison, and synchronization run daily at 07:30 (UTC+8)** to ensure rankings remain perfectly aligned with official sources.
 
-#### 🏆 Core Top Lists
+#### 🏆 Tiers 1 & 2: Mainstream Essentials & Cinematic Hall of Fame
 * 🍿 **IMDb Top 250 Movies**: [View Grid](https://www.themoviedb.org/list/8647021?view=grid)
 * 📺 **IMDb Top 250 TV Shows**: [View Grid](https://www.themoviedb.org/list/8647022?view=grid)
 * 🎞️ **Douban Movies Top 250**: [View Grid](https://www.themoviedb.org/list/8647023?view=grid)
-* 🎬 **Letterboxd's Top 500 Films**: [View Grid](https://www.themoviedb.org/list/8648802?view=grid)
-* 🎥 **TSPDT - 1000 Greatest Films**: [View Grid](https://www.themoviedb.org/list/8648821?view=grid)
-* 🎬 **1001 Movies You Must See Before You Die**: [View Grid](https://www.themoviedb.org/list/8649029?view=grid)
+* 🏛️ **S&S Directors - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649058?view=grid)
+* 🏛️ **S&S Critics - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649050?view=grid)
+* ⭐ **AFI Top 100 (2007)**: [View Grid](https://www.themoviedb.org/list/8649041?view=grid)
 
-#### 🌍 Global Prestigious Film Awards
+#### 🌍 Tier 3: Global Prestigious Film Awards
 * 🏆 **Oscar Winning Films: Best Picture**: [View Grid](https://www.themoviedb.org/list/8648843?view=grid)
 * 🌿 **Cannes Film Festival Palme d'Or**: [View Grid](https://www.themoviedb.org/list/8648844?view=grid)
 * 🎭 **BAFTA Award for Best Film**: [View Grid](https://www.themoviedb.org/list/8648848?view=grid)
@@ -140,7 +157,24 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🦁 **Venice Film Festival Golden Lion**: [View Grid](https://www.themoviedb.org/list/8648854?view=grid)
 * 🍁 **Toronto Film Festival Audience Award**: [View Grid](https://www.themoviedb.org/list/8648855?view=grid)
 
-#### 📈 Trending & Popular
+#### 🎬 Tier 4: Cinephile Communities & Curations
+* 🎬 **LB Top 500 Films**: [View Grid](https://www.themoviedb.org/list/8648802?view=grid)
+* 🔥 **LB Top 250 Films with the Most Fans**: [View Grid](https://www.themoviedb.org/list/8649224?view=grid)
+* 🎨 **LB Top 250 Animated Films**: [View Grid](https://www.themoviedb.org/list/8649225?view=grid)
+* 📽️ **LB Top 250 Documentary Films**: [View Grid](https://www.themoviedb.org/list/8649231?view=grid)
+* 📝 **Roger Ebert's Great Movies**: [View Grid](https://www.themoviedb.org/list/8649219?view=grid)
+
+#### 📚 Tier 5: Ultimate Collection Targets (1000+ Films)
+* 🎥 **TSPDT - 1000 Greatest Films**: [View Grid](https://www.themoviedb.org/list/8648821?view=grid)
+* 📖 **1001 Movies You Must See Before You Die**: [View Grid](https://www.themoviedb.org/list/8649029?view=grid)
+* 💽 **Criterion Collection**: [View Grid](https://www.themoviedb.org/list/8649108?view=grid)
+
+#### ✨ Tier 6: Modern Indie Labels & Studios
+* ✨ **Every A24 Film**: [View Grid](https://www.themoviedb.org/list/8649217?view=grid)
+* 🔴 **Every NEON Film**: [View Grid](https://www.themoviedb.org/list/8649218?view=grid)
+* 🎞️ **Every MUBI Film**: [View Grid](https://www.themoviedb.org/list/8649220?view=grid)
+
+#### 📈 Tier 7: Trending & Popular
 * 📈 **Douban - Weekly Highly Rated Movies**: [View Grid](https://www.themoviedb.org/list/8648547?view=grid)
 * 📺 **Douban - Highly Rated Chinese Series**: [View Grid](https://www.themoviedb.org/list/8648548?view=grid)
 * 🌍 **Douban - Highly Rated Global Series**: [View Grid](https://www.themoviedb.org/list/8648549?view=grid)

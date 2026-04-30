@@ -76,41 +76,56 @@ BATCH_SIZE = 50
 #   - 整数  = 仅订阅榜单前 N 部（例如填 3，代表只检查榜单前 3 名，缺失则发给 MP）
 # notify_missing: 是否在通知中打印具体的缺失片名。设为 False 时，仅在一句话概览中显示缺失数量，防止通知过长。
 CUSTOM_LISTS = [
-    # === 第一梯队：大众必看与绝对主流（最高频点击，绝对 C 位） ===
+    # === 第一梯队：大众必看与绝对主流（最高频点击，全家日常观影的绝对 C 位） ===
     {"name": "IMDb Top 250 Movies", "id": "8647021", "type": "Movie", "mp_subscribe": True, "notify_missing": True},
     {"name": "IMDb Top 250 TV Shows", "id": "8647022", "type": "Series", "mp_subscribe": False, "notify_missing": True},
     {"name": "豆瓣电影 Top 250", "id": "8647023", "type": "Movie", "mp_subscribe": True, "notify_missing": True},
 
-    # === 第二梯队：影史权威殿堂（含金量最高，学术与艺术标杆） ===
+    # === 第二梯队：影史权威殿堂（最高含金量，不可撼动的学术与艺术标杆） ===
     {"name": "S&S Directors - Greatest Films", "id": "8649058", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "S&S Critics - Greatest Films", "id": "8649050", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "AFI Top 100 (2007)", "id": "8649041", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
 
-    # === 第三梯队：顶尖电影节与行业风向标（高质量获奖佳作） ===
+    # === 第三梯队：全球顶尖电影节与行业大奖（高品质获奖佳作与大师巡礼） ===
     {"name": "奥斯卡历届最佳影片", "id": "8648843", "type": "Movie", "mp_subscribe": 1, "notify_missing": True},
     {"name": "戛纳电影节金棕榈奖", "id": "8648844", "type": "Movie", "mp_subscribe": 1, "notify_missing": True},
+    {"name": "威尼斯电影节金狮奖", "id": "8648854", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
+    {"name": "柏林电影节金熊奖", "id": "8648852", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
     {"name": "英国电影学院奖最佳影片", "id": "8648848", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
     {"name": "金球奖最佳剧情片", "id": "8648849", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
     {"name": "金球奖最佳音乐/喜剧片", "id": "8648850", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
     {"name": "独立精神奖最佳长片", "id": "8648851", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
-    {"name": "柏林电影节金熊奖", "id": "8648852", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
-    {"name": "威尼斯电影节金狮奖", "id": "8648854", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
     {"name": "多伦多电影节人民选择奖", "id": "8648855", "type": "Movie", "mp_subscribe": 1, "notify_missing": False},
 
-    # === 第四梯队：高阶影迷社区（权威与体量之间的完美过渡） ===
-    {"name": "Letterboxd's Top 500 Films", "id": "8648802", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
-
-    # === 第五梯队：超大体量考古片库（千部级别，适合日常洗版与核对） ===
+    # === 第四梯队：高阶影迷社区与名家策展（品味过滤，兼顾极客探索与优质亲子动画） ===
+    {"name": "LB Top 500 Films", "id": "8648802", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Films with the Most Fans", "id": "8649224", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Animated Films", "id": "8649225", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Documentary Films", "id": "8649231", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "Roger Ebert's Great Movies", "id": "8649219", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    
+    # === 第五梯队：超大体量洗版底仓（千部级别，影音极客的镇库之宝与终极洗版收藏目标） ===
     {"name": "TSPDT - 1000 Greatest Films", "id": "8648821", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "1001 Movies You Must See Before You Die", "id": "8649029", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "Criterion Collection", "id": "8649108", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
 
-    # === 第六梯队：实时风向与近期热门（动态变化，适合找新片/新剧） ===
+    # === 第六梯队：现代独立与流行厂牌（极高活跃度，当代影迷圈的前沿风向） ===
+    {"name": "Every A24 Film", "id": "8649217", "type": "Movie", "mp_subscribe": False, "notify_missing": True},
+    {"name": "Every NEON Film", "id": "8649218", "type": "Movie", "mp_subscribe": False, "notify_missing": True},
+    {"name": "Every MUBI Film", "id": "8649220", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+
+    # === 第七梯队：实时风向与近期热门（高频动态追踪，周末寻觅新片与下饭剧的首选） ===
     {"name": "豆瓣 - 一周口碑电影榜", "id": "8648547", "type": "Movie", "mp_subscribe": 3, "notify_missing": True},
     {"name": "豆瓣 - 华语口碑剧集榜", "id": "8648548", "type": "Series", "mp_subscribe": False, "notify_missing": True},
     {"name": "豆瓣 - 全球口碑剧集榜", "id": "8648549", "type": "Series", "mp_subscribe": False, "notify_missing": True},
     {"name": "豆瓣 - 实时热门电影榜", "id": "8648550", "type": "Movie", "mp_subscribe": 3, "notify_missing": False},
     {"name": "豆瓣 - 实时热门电视榜", "id": "8648551", "type": "Series", "mp_subscribe": False, "notify_missing": False}
 ]
+# === 历史遗留合集名称映射 (用于清理旧名称) ===
+# 格式: {"新名称": ["旧名称1", "旧名称2"]}
+OLD_COLLECTION_NAMES = {
+    "LB Top 500 Films": ["Letterboxd's Top 500 Films"]
+}
 
 # 7. 豆瓣 28 大分类列表配置 (独立开关配置)
 # 排序规则: 同一分类 -> 近期热门 -> Top 20 -> 高分经典 -> 冷门佳作
@@ -452,34 +467,39 @@ def fix_missing_collection_posters():
 
 def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
     """
-    逻辑：先删除同名合集再重新创建，以确保合集在 Emby 中按“添加日期”排序时处于最前。
+    逻辑：先删除同名合集（及映射表中的旧合集）再重新创建。
+    以此确保合集在 Emby 中按“添加日期”排序时处于最前（置顶）。
     """
     if not item_ids:
         print(f"  [跳过] 列表【{name}】无匹配影片，不执行创建。")
         return
 
     try:
-        # 1. 查找现有合集 (修复 500 错误：移除 SearchTerm，改用本地精确匹配，防止 Emby 搜索含特殊字符时服务端崩溃)
+        # 1. 查找现有合集（包含新名称和历史旧名称）
         search_res = session.get(f"{EMBY_URL}/emby/Items", params={
             "api_key": API_KEY, 
             "IncludeItemTypes": "BoxSet", 
             "Recursive": True
         }).json()
         
-        # 本地精确比对 Name
-        existing_col = next((i for i in search_res.get("Items", []) if i["Name"] == name), None)
+        # 确定待清理名单：当前名称 + OLD_COLLECTION_NAMES 里的历史名称
+        target_names = [name] + OLD_COLLECTION_NAMES.get(name, [])
+        
+        # 在库内寻找匹配上述任意名称的合集
+        collections_to_delete = [i for i in search_res.get("Items", []) if i["Name"] in target_names]
 
-        # 2. 如果合集已存在，先将其删除
-        if existing_col:
+        # 2. 循环删除命中的旧合集
+        for old_col in collections_to_delete:
             try:
-                del_res = session.delete(f"{EMBY_URL}/emby/Items/{existing_col['Id']}", params={"api_key": API_KEY})
+                col_id = old_col['Id']
+                col_name = old_col['Name']
+                del_res = session.delete(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": API_KEY})
                 if del_res.status_code in [200, 204]:
-                    print(f"    🗑️ 已清理旧合集并准备置顶重排: {name}")
+                    print(f"    🗑️ 已清理合集（准备重排/更名）: {col_name}")
                 else:
-                    print(f"    ⚠️ 删除旧合集失败 (HTTP {del_res.status_code})，忽略并尝试直接更新...")
+                    print(f"    ⚠️ 删除旧合集 {col_name} 失败 (HTTP {del_res.status_code})")
             except Exception as e:
-                # 即使删除报错也直接无视，继续往下走
-                print(f"    ⚠️ 删除请求发生异常，已忽略: {e}")
+                print(f"    ⚠️ 删除旧合集请求发生异常: {e}")
 
         # 3. 创建全新合集
         # 先推入第一批数据以创建合集容器
