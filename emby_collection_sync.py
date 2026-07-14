@@ -110,8 +110,8 @@ CUSTOM_LISTS = [
     {"name": "Criterion Collection", "id": "8649108", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
 
     # === 第六梯队：现代独立与流行厂牌（极高活跃度，当代影迷圈的前沿风向） ===
-    {"name": "Every A24 Film", "id": "8649217", "type": "Movie", "mp_subscribe": False, "notify_missing": True},
-    {"name": "Every NEON Film", "id": "8649218", "type": "Movie", "mp_subscribe": False, "notify_missing": True},
+    {"name": "Every A24 Film", "id": "8649217", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "Every NEON Film", "id": "8649218", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "Every MUBI Film", "id": "8649220", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
 
     # === 第七梯队：实时风向与近期热门（高频动态追踪，周末寻觅新片与下饭剧的首选） ===
@@ -739,7 +739,7 @@ def process_custom_list(list_info, mp_existing_ids, is_genre=False):
         
     # 新增提取 notify_missing 配置，默认为 True
     sync_stats["lists_report"][name] = {
-        "is_genre": is_genre, "total": len(tmdb_items), 
+        "is_genre": is_genre, "type": item_type, "total": len(tmdb_items),
         "matched": len(matched_ids), "missing": missing_items,
         "notify_missing": list_info.get("notify_missing", True) 
     }
@@ -849,8 +849,15 @@ def process():
                 short_name = list_name.replace("豆瓣电影 - ", "").replace(" - Top 20", "")
                 genre_missing_summary.append(f"{short_name}(缺{len(data['missing'])})")
         else:
-            report.append(f"🎬 {list_name}")
-            report.append(f"  - 列表总数: {data['total']} | 库内匹配: {data['matched']} | 库内缺失: {len(data['missing'])}")
+            # 1. 判断类型分配 Emoji
+            icon = "📺" if data.get("type") == "Series" else "🎬"        
+            
+            # 2. 智能判断缺失状态：如果是 0，显示 ✅；如果大于 0，显示 (缺X)
+            missing_count = len(data['missing'])
+            missing_text = "✅" if missing_count == 0 else f"(缺{missing_count})"
+            
+            # 3. 组装单行报告
+            report.append(f"{icon} {list_name}: {data['matched']}/{data['total']} {missing_text}")
         
     report.extend([
         f"", f"📂 豆瓣分类同步: 达标生成 {genre_matched} 个合集", f"🇨🇳 国产影视整理",
@@ -916,6 +923,10 @@ def process():
         for f in sync_stats["fixed_cover_names"]:
             report.append(f"  • {f}")
 
+    # 在触发真实发送前，将最终要推出去的极简消息在控制台打印预览一下
+    print("【即将发送的通知消息预览】")
+    print("\n".join(report))
+    
     # 通过青龙原生通知渠道发送报告
     send("Emby 智能合集整理报告", "\n".join(report))
 
