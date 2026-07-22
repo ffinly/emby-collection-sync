@@ -325,6 +325,15 @@ def get_emby_items(item_type, fields="ProductionLocations,Path,ProviderIds,Premi
     params = {"api_key": API_KEY, "IncludeItemTypes": item_type, "Recursive": True, "Fields": fields, "Limit": 20000}
     return session.get(url, params=params).json().get("Items", [])
 
+def build_emby_tmdb_map(items):
+    """构建 TMDb ID 到 Emby 条目 ID 的索引，供所有榜单复用。"""
+    tmdb_map = {}
+    for item in items:
+        tmdb_id = item.get("ProviderIds", {}).get("Tmdb")
+        if tmdb_id:
+            tmdb_map[str(tmdb_id)] = item["Id"]
+    return tmdb_map
+
 def purge_collection_metadata(col_id):
     """自动清理遗留的锁定"""
     try:
@@ -642,7 +651,7 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
     except requests.exceptions.Timeout: return False, "网络请求超时 (10s)"
     except Exception as e: return False, f"异常: {str(e)[:30]}"
 
-def process_custom_list(list_info, mp_existing_ids, is_genre=False):
+def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=False):
     name = list_info["name"]
     list_id = list_info["id"]
     item_type = list_info.get("type", "Movie")
@@ -657,11 +666,8 @@ def process_custom_list(list_info, mp_existing_ids, is_genre=False):
         sync_stats["lists_report"][name] = {"is_genre": is_genre, "total": 0, "matched": 0, "missing": []}
         return
 
-    emby_items = get_emby_items(item_type, "ProviderIds,Name")
-    emby_tmdb_map = {}
-    for i in emby_items:
-        tmdb_val = i.get("ProviderIds", {}).get("Tmdb")
-        if tmdb_val: emby_tmdb_map[str(tmdb_val)] = i["Id"]
+    # 复用 process() 启动时构建的全库索引，避免每个榜单重复扫描 Emby。
+    emby_tmdb_map = emby_tmdb_maps[item_type]
 
     # 智能提取海报
     poster_path = ""
@@ -755,11 +761,21 @@ def process():
         print(f"🍿 MoviePilot 自动订阅已启用 -> {MP_URL}")
         mp_existing_ids = get_existing_mp_subscriptions()
 
+    # Emby 全库数据只读取一次，后续所有榜单及国产影视整理共同复用。
+    print("\n📚 正在加载 Emby 媒体库索引...")
+    all_movies = get_emby_items("Movie")
+    all_series = get_emby_items("Series")
+    emby_tmdb_maps = {
+        "Movie": build_emby_tmdb_map(all_movies),
+        "Series": build_emby_tmdb_map(all_series),
+    }
+    print(f"✅ Emby 索引加载完成：电影 {len(all_movies)} 部，剧集 {len(all_series)} 部")
+
     # --- 阶段一：同步豆瓣分类榜单 (最先执行，排序在后) ---
     print("\n" + "="*45 + "\n📂 阶段一：同步豆瓣分类榜单\n" + "="*45)
     # 使用 reversed 确保列表第一项比最后一项晚创建，从而排在前面
     for lst in reversed(DOUBAN_GENRE_LISTS): 
-        process_custom_list(lst, mp_existing_ids, is_genre=True)
+        process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=True)
 
     # --- 阶段二：处理国产影视系列 (中间执行) ---
     print("\n" + "="*45 + "\n🇨🇳 阶段二：处理国产影视系列...\n" + "="*45)
@@ -767,7 +783,6 @@ def process():
     sort_key = "DateCreated" if DOMESTIC_POSTER_MODE == "added" else "PremiereDate"
     
     # 1. 处理国产电视剧
-    all_series = get_emby_items("Series")
     dom_series = []
     for s in all_series:
         tmdb_id = s.get("ProviderIds", {}).get("Tmdb")
@@ -795,7 +810,6 @@ def process():
     sync_stats["series"] = len(dom_series)
 
     # 2. 处理国产电影
-    all_movies = get_emby_items("Movie")
     dom_movies = [m for m in all_movies if any(pk in m.get("Path", "") for pk in PATH_KEYWORDS) or 
                   any(any(kw.lower() in loc.lower() for kw in DOMESTIC_KEYWORDS) for loc in m.get("ProductionLocations", []))]
                   
@@ -819,7 +833,7 @@ def process():
     print("\n" + "="*45 + "\n🎬 阶段三：同步核心榜单\n" + "="*45)
     # 使用 reversed 确保 CUSTOM_LISTS 里的第一个榜单最后被创建，稳居 Emby 首位
     for lst in reversed(CUSTOM_LISTS): 
-        process_custom_list(lst, mp_existing_ids, is_genre=False)
+        process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=False)
 
     # --- 阶段四：全局扫描修复无封面合集 ---
     fix_missing_collection_posters()
