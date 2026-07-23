@@ -44,10 +44,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 1. Emby 服务器配置
 EMBY_URL = os.getenv('EMBY_URL')       # 在青龙环境变量新增名称 EMBY_URL，值填你的 Emby 地址，例如 "http://192.168.1.100:8096"
-API_KEY = os.getenv('EMBY_API_KEY')    # 在青龙环境变量新增名称 EMBY_API_KEY，值填你在 Emby 控制台生成的 API 密钥
+EMBY_API_KEY = os.getenv('EMBY_API_KEY')    # 在青龙环境变量新增名称 EMBY_API_KEY，值填你在 Emby 控制台生成的 API 密钥
 
 # 2. TMDb API 配置
-TMDB_KEY = os.getenv('TMDB_API_KEY')   # 在青龙环境变量新增名称 TMDB_API_KEY，值填你的 TMDb API Key (v3)
+TMDB_API_KEY = os.getenv('TMDB_API_KEY')   # 在青龙环境变量新增名称 TMDB_API_KEY，值填你的 TMDb API Key (v3)
 
 # 3. MoviePilot 自动订阅配置
 MP_ENABLE = False                      # MP 订阅总开关：True 开启，False 关闭
@@ -59,8 +59,8 @@ MP_EXCLUDE_SERIES_IDS = []             # 填入不想订阅的剧集 TMDb ID
 
 # 4. 网络代理配置 (国内宿主机直连 TMDb 会超时，需开启代理)
 USE_PROXY = False                      # 如果需要走代理，请改为 True
-TMDB_PROXY = os.getenv('PROXY_URL')    # 在青龙环境变量新增名称 PROXY_URL，值填你的代理网关，例如 "http://192.168.1.5:6152"
-PROXIES = {"http": TMDB_PROXY, "https": TMDB_PROXY} if USE_PROXY else None
+PROXY_URL = os.getenv('PROXY_URL')    # 在青龙环境变量新增名称 PROXY_URL，值填你的代理网关，例如 "http://192.168.1.5:6152"
+PROXIES = {"http": PROXY_URL, "https": PROXY_URL} if USE_PROXY else None
 
 # 5. 智能合集关键字配置 
 PATH_KEYWORDS = ["国产", "华语", "Chinese"] 
@@ -304,7 +304,7 @@ sync_stats = {
 }
 
 def get_emby_users():
-    try: return session.get(f"{EMBY_URL}/emby/Users", params={"api_key": API_KEY}).json()
+    try: return session.get(f"{EMBY_URL}/emby/Users", params={"api_key": EMBY_API_KEY}).json()
     except: return []
 
 def add_to_all_users_favorites(item_id, item_name):
@@ -314,16 +314,16 @@ def add_to_all_users_favorites(item_id, item_name):
         uid = user["Id"]
         try:
             check_url = f"{EMBY_URL}/emby/Users/{uid}/Items/{item_id}"
-            item_info = session.get(check_url, params={"api_key": API_KEY}).json()
+            item_info = session.get(check_url, params={"api_key": EMBY_API_KEY}).json()
             if not item_info.get("UserData", {}).get("IsFavorite", False):
-                session.post(f"{EMBY_URL}/emby/Users/{uid}/FavoriteItems/{item_id}", params={"api_key": API_KEY})
+                session.post(f"{EMBY_URL}/emby/Users/{uid}/FavoriteItems/{item_id}", params={"api_key": EMBY_API_KEY})
                 count += 1
         except: continue
     if count > 0: sync_stats["favs"] += count
 
 def get_emby_items(item_type, fields="ProductionLocations,Path,ProviderIds,PremiereDate,DateCreated"):
     url = f"{EMBY_URL}/emby/Items"
-    params = {"api_key": API_KEY, "IncludeItemTypes": item_type, "Recursive": True, "Fields": fields, "Limit": 20000}
+    params = {"api_key": EMBY_API_KEY, "IncludeItemTypes": item_type, "Recursive": True, "Fields": fields, "Limit": 20000}
     return session.get(url, params=params).json().get("Items", [])
 
 def build_emby_tmdb_map(items):
@@ -340,10 +340,10 @@ def purge_collection_metadata(col_id):
     try:
         users = get_emby_users()
         if not users: return
-        item_info = session.get(f"{EMBY_URL}/emby/Users/{users[0]['Id']}/Items/{col_id}", params={"api_key": API_KEY}, timeout=10).json()
+        item_info = session.get(f"{EMBY_URL}/emby/Users/{users[0]['Id']}/Items/{col_id}", params={"api_key": EMBY_API_KEY}, timeout=10).json()
         if "LockedFields" in item_info and "ProviderIds" in item_info["LockedFields"]:
             item_info["LockedFields"].remove("ProviderIds") 
-            session.post(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": API_KEY}, json=item_info, timeout=10)
+            session.post(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": EMBY_API_KEY}, json=item_info, timeout=10)
     except Exception: pass
 
 def get_original_poster(tmdb_id, item_type="movie"):
@@ -351,12 +351,12 @@ def get_original_poster(tmdb_id, item_type="movie"):
     try:
         # 1. 查出原语言 (original_language)
         detail_url = f"https://api.themoviedb.org/3/{item_type}/{tmdb_id}"
-        detail_res = session.get(detail_url, params={"api_key": TMDB_KEY}, proxies=PROXIES, timeout=5).json()
+        detail_res = session.get(detail_url, params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5).json()
         orig_lang = detail_res.get("original_language", "en")
         
         # 2. 获取所有的海报列表 (不传 language 参数获取全部)
         img_url = f"https://api.themoviedb.org/3/{item_type}/{tmdb_id}/images"
-        img_res = session.get(img_url, params={"api_key": TMDB_KEY}, proxies=PROXIES, timeout=5).json()
+        img_res = session.get(img_url, params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5).json()
         posters = img_res.get("posters", [])
         
         # 3. 筛选第一张匹配原语言的海报
@@ -389,7 +389,7 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
             # 强制删除旧的封面，防止 Emby 缓存卡死
             try:
                 # 预清理缓存
-                session.delete(f"{EMBY_URL}/emby/Items/{col_id}/Images/Primary", params={"api_key": API_KEY}, timeout=5)
+                session.delete(f"{EMBY_URL}/emby/Items/{col_id}/Images/Primary", params={"api_key": EMBY_API_KEY}, timeout=5)
                 time.sleep(1.0) # 给予底层文件系统 IO 删除时间
             except Exception: pass
             
@@ -398,7 +398,7 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
             headers = {"Content-Type": mime_type}
             
             res = session.post(
-                url, params={"api_key": API_KEY}, data=b64_image, 
+                url, params={"api_key": EMBY_API_KEY}, data=b64_image, 
                 headers=headers, proxies={"http": None, "https": None}, timeout=10
             )
             
@@ -407,7 +407,7 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
                 try:
                     session.post(
                         f"{EMBY_URL}/emby/Items/{col_id}/Refresh", 
-                        params={"api_key": API_KEY, "Recursive": False, "ImageRefreshMode": "FullRefresh"}, 
+                        params={"api_key": EMBY_API_KEY, "Recursive": False, "ImageRefreshMode": "FullRefresh"}, 
                         timeout=5
                     )
                 except Exception: pass
@@ -432,7 +432,7 @@ def fix_missing_collection_posters():
     print("\n" + "="*45 + "\n🖼️ 阶段四：全局无封面合集修复 (自动排除榜单)\n" + "="*45)
     try:
         collections = session.get(f"{EMBY_URL}/emby/Items", params={
-            "api_key": API_KEY, "IncludeItemTypes": "BoxSet", "Recursive": True, "Fields": "ImageTags"
+            "api_key": EMBY_API_KEY, "IncludeItemTypes": "BoxSet", "Recursive": True, "Fields": "ImageTags"
         }).json().get("Items", [])
 
         fixed_count = 0
@@ -449,7 +449,7 @@ def fix_missing_collection_posters():
 
                 # 获取合集内的所有条目，并按首映时间(PremiereDate)升序排列（越早越前）
                 items_in_col = session.get(f"{EMBY_URL}/emby/Items", params={
-                    "api_key": API_KEY, "ParentId": col_id, "Fields": "PremiereDate,ProviderIds", 
+                    "api_key": EMBY_API_KEY, "ParentId": col_id, "Fields": "PremiereDate,ProviderIds", 
                     "SortBy": "PremiereDate", "SortOrder": "Ascending"
                 }).json().get("Items", [])
 
@@ -487,7 +487,7 @@ def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
     try:
         # 1. 查找现有合集（包含新名称和历史旧名称）
         search_res = session.get(f"{EMBY_URL}/emby/Items", params={
-            "api_key": API_KEY, 
+            "api_key": EMBY_API_KEY, 
             "IncludeItemTypes": "BoxSet", 
             "Recursive": True
         }).json()
@@ -503,7 +503,7 @@ def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
             try:
                 col_id = old_col['Id']
                 col_name = old_col['Name']
-                del_res = session.delete(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": API_KEY})
+                del_res = session.delete(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": EMBY_API_KEY})
                 if del_res.status_code in [200, 204]:
                     print(f"    🗑️ 已清理合集（准备重排/更名）: {col_name}")
                 else:
@@ -515,7 +515,7 @@ def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
         # 先推入第一批数据以创建合集容器
         initial_batch = item_ids[:BATCH_SIZE]
         create_res = session.post(f"{EMBY_URL}/emby/Collections", params={
-            "api_key": API_KEY, 
+            "api_key": EMBY_API_KEY, 
             "Name": name, 
             "Ids": ",".join(initial_batch)
         }).json()
@@ -531,7 +531,7 @@ def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
         if len(item_ids) > BATCH_SIZE:
             for i in range(BATCH_SIZE, len(item_ids), BATCH_SIZE):
                 session.post(f"{EMBY_URL}/emby/Collections/{col_id}/Items", params={
-                    "api_key": API_KEY, 
+                    "api_key": EMBY_API_KEY, 
                     "Ids": ",".join(item_ids[i:i+BATCH_SIZE])
                 })
                 time.sleep(0.1) # 轻微防抖
@@ -544,10 +544,10 @@ def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
                     users = get_emby_users()
                     if users:
                         uid = users[0]['Id']
-                        item_info = session.get(f"{EMBY_URL}/emby/Users/{uid}/Items/{col_id}", params={"api_key": API_KEY}).json()
+                        item_info = session.get(f"{EMBY_URL}/emby/Users/{uid}/Items/{col_id}", params={"api_key": EMBY_API_KEY}).json()
                         item_info["Overview"] = list_desc
                         # 回传更新后的元数据
-                        session.post(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": API_KEY}, json=item_info)
+                        session.post(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": EMBY_API_KEY}, json=item_info)
                         print(f"    📝 已同步合集简介")
                 except Exception as e:
                     print(f"    ⚠️ 合集简介写入失败: {e}")
@@ -568,7 +568,7 @@ def fetch_tmdb_list_data(list_id):
     page = 1
     while True:
         url = f"https://api.themoviedb.org/3/list/{list_id}"
-        params = {"api_key": TMDB_KEY, "language": "zh-CN", "page": page}
+        params = {"api_key": TMDB_API_KEY, "language": "zh-CN", "page": page}
         try:
             res = session.get(url, params=params, proxies=PROXIES, timeout=10)
             # 兼容 V4 列表 ID 降级
@@ -754,7 +754,7 @@ def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=Fal
 def process():
     start_time = time.time()
     
-    if USE_PROXY: print(f"🌍 全局代理已开启 -> {TMDB_PROXY}")
+    if USE_PROXY: print(f"🌍 全局代理已开启 -> {PROXY_URL}")
     
     # 初始化 MoviePilot 订阅比对集合
     mp_existing_ids = set()
@@ -789,7 +789,7 @@ def process():
         tmdb_id = s.get("ProviderIds", {}).get("Tmdb")
         if tmdb_id:
             try:
-                res = session.get(f"https://api.themoviedb.org/3/tv/{tmdb_id}", params={"api_key": TMDB_KEY}, proxies=PROXIES, timeout=5)
+                res = session.get(f"https://api.themoviedb.org/3/tv/{tmdb_id}", params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5)
                 if any(code in TMDB_DOMESTIC_CODES for code in res.json().get("origin_country", [])):
                     dom_series.append(s)
             except: pass
