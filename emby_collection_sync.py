@@ -20,9 +20,10 @@ Emby 自动化综合管理工具 (青龙面板专版)
 2. 安装依赖：在青龙面板左侧导航栏 -> 【依赖管理】-> 【Python3】中，添加并安装 `requests` 和 `urllib3`。
 3. 消息推送：脚本已原生兼容青龙环境，只需在青龙的【系统设置】->【通知设置】中配好微信/TG/钉钉，即可自动收到精美的整理报告。
 4. 定时任务：在青龙【定时任务】新增任务，命令为 `task emby_collection_sync.py`，建议定时规则定为每天执行一次（例：`0 30 8 * * *` 每日8点30分）。
-5. 填写配置：请务必在下方的“配置区域”填写好你自己的 Emby 和 TMDB 密钥。国内环境记得开启代理！
+5. 填写配置：请务必在青龙环境变量中填写好你自己的 Emby 和 TMDB 密钥。国内环境记得开启代理！
 """
 
+import os
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -42,23 +43,23 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # ================= 核心配置区域 (使用前请务必修改) =================
 
 # 1. Emby 服务器配置
-EMBY_URL = "http://YOUR_EMBY_IP:PORT"  # 替换为你的 Emby 地址，例如 "http://192.168.1.100:8096"
-API_KEY = "YOUR_EMBY_API_KEY"          # 替换为你在 Emby 控制台生成的 API 密钥
+EMBY_URL = os.getenv('EMBY_URL')       # 在青龙环境变量新增名称 EMBY_URL，值填你的 Emby 地址，例如 "http://192.168.1.100:8096"
+API_KEY = os.getenv('EMBY_API_KEY')    # 在青龙环境变量新增名称 EMBY_API_KEY，值填你在 Emby 控制台生成的 API 密钥
 
 # 2. TMDb API 配置
-TMDB_KEY = "YOUR_TMDB_API_KEY"         # 替换为你的 TMDb API Key (v3)
+TMDB_KEY = os.getenv('TMDB_API_KEY')   # 在青龙环境变量新增名称 TMDB_API_KEY，值填你的 TMDb API Key (v3)
 
 # 3. MoviePilot 自动订阅配置
 MP_ENABLE = False                      # MP 订阅总开关：True 开启，False 关闭
-MP_URL = "http://YOUR_MP_IP:PORT"      # 替换为你的 MP 地址，例如 "http://192.168.1.10:3000"
-MP_API_TOKEN = "YOUR_MP_API_TOKEN"     # 替换为你的 MP API Token (在 MP 设置 - 基础设置中获取或生成)
+MP_URL = os.getenv('MP_URL')           # 在青龙环境变量新增名称 MP_URL，值填你的 MoviePilot 地址，例如 "http://192.168.1.10:3000"
+MP_API_TOKEN = os.getenv('MP_API_TOKEN') # 在青龙环境变量新增名称 MP_API_TOKEN，值填你的 MP API Token (在 MP 设置 - 基础设置中获取或生成)
 # MP 订阅排除列表（分离电影和剧集，防止 TMDb ID 冲突误杀）
 MP_EXCLUDE_MOVIE_IDS = []              # 填入不想订阅的电影 TMDb ID
 MP_EXCLUDE_SERIES_IDS = []             # 填入不想订阅的剧集 TMDb ID
 
 # 4. 网络代理配置 (国内宿主机直连 TMDb 会超时，需开启代理)
 USE_PROXY = False                      # 如果需要走代理，请改为 True
-TMDB_PROXY = "http://YOUR_PROXY_IP:PORT" # 替换为你的代理网关，例如 "http://192.168.1.5:6152"
+TMDB_PROXY = os.getenv('PROXY_URL')    # 在青龙环境变量新增名称 PROXY_URL，值填你的代理网关，例如 "http://192.168.1.5:6152"
 PROXIES = {"http": TMDB_PROXY, "https": TMDB_PROXY} if USE_PROXY else None
 
 # 5. 智能合集关键字配置 
