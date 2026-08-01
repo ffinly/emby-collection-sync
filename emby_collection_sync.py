@@ -778,7 +778,13 @@ def process():
     for lst in reversed(DOUBAN_GENRE_LISTS): 
         process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=True)
 
-    # --- 阶段二：处理国产影视系列 (中间执行) ---
+    # --- 阶段二：同步核心榜单 (中间执行) ---
+    print("\n" + "="*45 + "\n🎬 阶段三：同步核心榜单\n" + "="*45)
+    # 使用 reversed 确保 CUSTOM_LISTS 里的第一个榜单最后被创建，稳居 Emby 首位
+    for lst in reversed(CUSTOM_LISTS): 
+        process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=False)
+	
+    # --- 阶段三：处理国产影视系列 (最后执行，排序最前) ---
     print("\n" + "="*45 + "\n🇨🇳 阶段二：处理国产影视系列...\n" + "="*45)
     
     sort_key = "DateCreated" if DOMESTIC_POSTER_MODE == "added" else "PremiereDate"
@@ -829,12 +835,6 @@ def process():
             
     update_collection_by_name("国产电影", [m["Id"] for m in dom_movies], "", dom_movie_poster)
     sync_stats["movies"] = len(dom_movies)
-
-    # --- 阶段三：同步核心榜单 (最后执行，排序最前) ---
-    print("\n" + "="*45 + "\n🎬 阶段三：同步核心榜单\n" + "="*45)
-    # 使用 reversed 确保 CUSTOM_LISTS 里的第一个榜单最后被创建，稳居 Emby 首位
-    for lst in reversed(CUSTOM_LISTS): 
-        process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=False)
 
     # --- 阶段四：全局扫描修复无封面合集 ---
     fix_missing_collection_posters()
