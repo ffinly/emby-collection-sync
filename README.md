@@ -110,7 +110,7 @@
   * 针对部分 Emby 版本优化了 API 请求路径，规避 JSON 解析异常，确保脚本在复杂网络环境下稳定运行。
 
 ### 📸 运行效果展示
-![Emby Collection Sync Demo](https://github.com/user-attachments/assets/87ad54c0-b474-4a6a-a402-e6a539da865d)
+<img src="https://github.com/user-attachments/assets/4af64073-f079-4ca8-90f9-ca2cb2a100b0" alt="Emby Collection Sync Demo" width="1920" />
 *(图：全自动生成的 Emby 专属海报墙与合集分类)*
 
 ### 🚀 快速开始 (以青龙面板为例)
@@ -235,7 +235,7 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
   * Optimized API request paths for various Emby versions to bypass JSON parsing exceptions, ensuring stable execution in complex network environments.
 
 ### 📸 Showcase
-![Emby Collection Sync Demo](https://github.com/user-attachments/assets/87ad54c0-b474-4a6a-a402-e6a539da865d)
+<img src="https://github.com/user-attachments/assets/4af64073-f079-4ca8-90f9-ca2cb2a100b0" alt="Emby Collection Sync Demo" width="1920" />
 *(Auto-generated customized poster walls and collection categories in Emby)*
 
 ### 🚀 Quick Start (via Qinglong Panel)
