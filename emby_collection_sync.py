@@ -298,10 +298,18 @@ sync_stats = {
     "fixed_cover_names": [],
     "mp_subscribed": 0, "mp_existed": 0, "mp_failed": [], 
     "mp_excluded": 0,
+    "mp_movie_subscribed": 0, "mp_movie_existed": 0,
+    "mp_movie_failed": 0, "mp_movie_excluded": 0,
+    "mp_series_subscribed": 0, "mp_series_existed": 0,
+    "mp_series_failed": 0, "mp_series_excluded": 0,
+    "mp_season_subscribed": 0, "mp_season_existed": 0,
+    "mp_season_failed": 0,
     "poster_failed": [],
     "pending_posters": [], 
     "lists_report": {}
 }
+# 电视剧需要按季检查，但同一次任务中不能因出现在多个榜单而重复处理和计数。
+mp_processed_series_ids = set()
 
 def get_emby_users():
     try: return session.get(f"{EMBY_URL}/emby/Users", params={"api_key": EMBY_API_KEY}).json()
@@ -618,7 +626,8 @@ def get_existing_mp_subscriptions():
 
 def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
     """推送到 MoviePilot 进行订阅"""
-    if not MP_ENABLE: return False, "未启用订阅功能"
+    empty_detail = {"created_seasons": 0, "existed_seasons": 0, "failed_seasons": 0}
+    if not MP_ENABLE: return False, "未启用订阅功能", empty_detail
     
     # 清理一下结尾可能多写的斜杠，防止拼接出错误路径
     base_url = MP_URL.rstrip('/')
@@ -633,9 +642,97 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
         "tmdbid": int(tmdb_id)
     }
 
-    # 如果是电视剧，显式指定 season 参数为 0 (代表订阅全季)
+    # 电视剧需要先查询 MP 中的完整季列表，再逐季创建订阅。
+    # season=0 在 MP 中代表特别篇，不代表全部季；如果存在第0季也会正常订阅。
     if item_type == "Series":
-        payload["season"] = 0
+        try:
+            seasons_res = session.get(
+                f"{base_url}/api/v1/media/seasons",
+                params={"apikey": MP_API_TOKEN, "mediaid": f"tmdb:{tmdb_id}"},
+                proxies={"http": None, "https": None}, timeout=10
+            )
+            if seasons_res.status_code != 200:
+                return False, f"查询季度失败 (HTTP {seasons_res.status_code})", empty_detail
+
+            seasons_data = seasons_res.json()
+            if not isinstance(seasons_data, list):
+                return False, f"查询季度返回格式异常 ({str(seasons_data)[:80]})", empty_detail
+
+            seasons = []
+            for season_info in seasons_data:
+                try:
+                    season = int(season_info.get("season_number"))
+                except (TypeError, ValueError, AttributeError):
+                    continue
+                if season >= 0:
+                    seasons.append(season)
+            seasons = sorted(set(seasons))
+
+            if not seasons:
+                return False, "MP 未查询到任何季度", empty_detail
+
+            created_seasons = []
+            existed_seasons = []
+            failed_seasons = []
+
+            for season in seasons:
+                # 防重必须精确到季度，不能只按电视剧 TMDb ID 判断。
+                check_res = session.get(
+                    f"{base_url}/api/v1/subscribe/media/tmdb:{tmdb_id}",
+                    params={"apikey": MP_API_TOKEN, "season": season},
+                    proxies={"http": None, "https": None}, timeout=10
+                )
+                if check_res.status_code == 200 and check_res.json().get("id"):
+                    existed_seasons.append(season)
+                    print(f"      -> 第 {season} 季已存在于 MP，跳过")
+                    continue
+
+                season_payload = payload.copy()
+                season_payload["season"] = season
+                res = session.post(
+                    f"{base_url}/api/v1/subscribe/",
+                    headers=headers, params={"apikey": MP_API_TOKEN},
+                    json=season_payload, proxies={"http": None, "https": None}, timeout=10
+                )
+
+                if res.status_code == 200:
+                    data = res.json()
+                    if data.get("success") is True or data.get("code") == 0:
+                        created_seasons.append(season)
+                        print(f"      -> 第 {season} 季订阅成功")
+                        continue
+                    reason = data.get("message") or str(data)
+                else:
+                    reason = f"HTTP {res.status_code}"
+
+                failed_seasons.append(f"第{season}季: {reason}")
+
+            if failed_seasons:
+                summary = "；".join(failed_seasons)
+                if created_seasons:
+                    summary += f"（已成功: {created_seasons}）"
+                return False, f"部分季度订阅失败 ({summary})", {
+                    "created_seasons": len(created_seasons),
+                    "existed_seasons": len(existed_seasons),
+                    "failed_seasons": len(failed_seasons)
+                }
+
+            if not created_seasons and existed_seasons:
+                return True, "所有季度均已存在", {
+                    "created_seasons": 0,
+                    "existed_seasons": len(existed_seasons),
+                    "failed_seasons": 0
+                }
+            return True, "", {
+                "created_seasons": len(created_seasons),
+                "existed_seasons": len(existed_seasons),
+                "failed_seasons": 0
+            }
+
+        except requests.exceptions.Timeout:
+            return False, "查询或订阅季度超时 (10s)", empty_detail
+        except Exception as e:
+            return False, f"季度订阅异常: {str(e)[:50]}", empty_detail
     
     try:
         res = session.post(
@@ -646,11 +743,11 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
         if res.status_code == 200:
             data = res.json()
             if data.get("success") == True or data.get("code") == 0:
-                return True, ""
-            return False, f"API 业务拒绝 ({data.get('message') or str(data)})"
-        return False, f"HTTP 状态码错误 {res.status_code}"
-    except requests.exceptions.Timeout: return False, "网络请求超时 (10s)"
-    except Exception as e: return False, f"异常: {str(e)[:30]}"
+                return True, "", empty_detail
+            return False, f"API 业务拒绝 ({data.get('message') or str(data)})", empty_detail
+        return False, f"HTTP 状态码错误 {res.status_code}", empty_detail
+    except requests.exceptions.Timeout: return False, "网络请求超时 (10s)", empty_detail
+    except Exception as e: return False, f"异常: {str(e)[:30]}", empty_detail
 
 def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=False):
     name = list_info["name"]
@@ -724,17 +821,48 @@ def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=Fal
                 if t_id in current_exclude_list: # --- 新增: 判断是否在排除列表中 ---
                     print("    -> 🚫 命中排除列表，跳过订阅")
                     sync_stats["mp_excluded"] += 1
-                elif t_id in mp_existing_ids:
+                    if item_type == "Movie":
+                        sync_stats["mp_movie_excluded"] += 1
+                    else:
+                        sync_stats["mp_series_excluded"] += 1
+                # 电影按 TMDb ID 防重；电视剧必须进入订阅函数按季度精确防重。
+                elif item_type == "Movie" and t_id in mp_existing_ids:
                     print("    -> 🍿 已存在于 MP，跳过重复订阅")
                     sync_stats["mp_existed"] += 1
+                    sync_stats["mp_movie_existed"] += 1
+                elif item_type == "Series" and t_id in mp_processed_series_ids:
+                    print("    -> 🍿 本次任务已处理该电视剧，跳过跨榜单重复订阅")
                 else:
-                    success, reason = subscribe_to_moviepilot(t_title, t_year, t_id, item_type)
+                    success, reason, mp_detail = subscribe_to_moviepilot(t_title, t_year, t_id, item_type)
+                    if item_type == "Series":
+                        mp_processed_series_ids.add(t_id)
+                        created_seasons = mp_detail["created_seasons"]
+                        existed_seasons = mp_detail["existed_seasons"]
+                        failed_seasons = mp_detail["failed_seasons"]
+                        sync_stats["mp_season_subscribed"] += created_seasons
+                        sync_stats["mp_season_existed"] += existed_seasons
+                        sync_stats["mp_season_failed"] += failed_seasons
+                        if created_seasons:
+                            sync_stats["mp_series_subscribed"] += 1
+                        # 同一部剧可能同时包含“已存在季”和“本次新增季”，两边都应计数。
+                        if existed_seasons:
+                            sync_stats["mp_series_existed"] += 1
+                        if not success:
+                            sync_stats["mp_series_failed"] += 1
                     if success:
-                        print("    -> 🍿 已成功推送 MP 订阅")
-                        sync_stats["mp_subscribed"] += 1
+                        if reason == "所有季度均已存在":
+                            print("    -> 🍿 所有季度均已存在于 MP，跳过重复订阅")
+                            sync_stats["mp_existed"] += 1
+                        else:
+                            print("    -> 🍿 已成功推送 MP 订阅")
+                            sync_stats["mp_subscribed"] += 1
+                            if item_type == "Movie":
+                                sync_stats["mp_movie_subscribed"] += 1
                         mp_existing_ids.add(t_id) # 标记为已订阅，防止单次执行时的跨榜单重复推送
                     else:
                         print(f"    -> ❌ MP 推送失败: {reason}")
+                        if item_type == "Movie":
+                            sync_stats["mp_movie_failed"] += 1
                         sync_stats["mp_failed"].append(f"{t_title} (失败原因: {reason})")
             
     if matched_ids:
@@ -879,13 +1007,41 @@ def process():
         f"  - 国产电影: {sync_stats['movies']} 部", f"  - 国产剧集: {sync_stats['series']} 部", f""
     ])
     
-    # 动态分析 MP 订阅状态并组装智能话术
+    # 分开展示电影与电视剧订阅状态；电视剧同时统计涉及的季度数。
     if MP_ENABLE:
-        sub, ext, fails = sync_stats['mp_subscribed'], sync_stats['mp_existed'], sync_stats['mp_failed']
-        excl = sync_stats['mp_excluded']
-        if sub == 0 and ext > 0 and len(fails) == 0: report.append(f"🍿 MP 订阅状态: 之前已全部添加 (已存在 {ext} 部, 排除 {excl} 部)")
-        elif len(fails) == 0: report.append(f"🍿 MP 订阅状态: 成功新增 {sub} 部 (跳过已有 {ext} 部, 排除 {excl} 部)")
-        else: report.append(f"🍿 MP 订阅状态: 新增 {sub} 部，跳过已有 {ext} 部，排除 {excl} 部，失败 {len(fails)} 部")
+        report.append("🍿 MP 订阅状态:")
+        movie_status = []
+        for label, key in (
+            ("新增", "mp_movie_subscribed"),
+            ("已有", "mp_movie_existed"),
+            ("排除", "mp_movie_excluded"),
+            ("失败", "mp_movie_failed"),
+        ):
+            if sync_stats[key] > 0:
+                movie_status.append(f"{label} {sync_stats[key]} 部")
+
+        series_status = []
+        for label, series_key, season_key in (
+            ("新增", "mp_series_subscribed", "mp_season_subscribed"),
+            ("已有", "mp_series_existed", "mp_season_existed"),
+            ("失败", "mp_series_failed", "mp_season_failed"),
+        ):
+            counts = []
+            if sync_stats[series_key] > 0:
+                counts.append(f"{sync_stats[series_key]} 部")
+            if sync_stats[season_key] > 0:
+                counts.append(f"{sync_stats[season_key]} 季")
+            if counts:
+                series_status.append(f"{label} {' / '.join(counts)}")
+        if sync_stats["mp_series_excluded"] > 0:
+            series_status.append(f"排除 {sync_stats['mp_series_excluded']} 部")
+
+        if movie_status:
+            report.append(f"  - 电影: {'，'.join(movie_status)}")
+        if series_status:
+            report.append(f"  - 电视剧: {'，'.join(series_status)}")
+        if not movie_status and not series_status:
+            report.append("  - 本次无订阅变动")
     else: report.append("🍿 MoviePilot 自动订阅未开启")
 
     # 计算当前脚本专属榜单的海报注入数量（总数 - 现成合集修复数）
