@@ -612,15 +612,20 @@ def get_existing_mp_subscriptions():
     base_url = MP_URL.rstrip('/')
     try:
         res = session.get(
-            f"{base_url}/api/v1/subscribe/", 
-            params={"apikey": MP_API_TOKEN},
+            f"{base_url}/api/v1/subscribe/",
+            headers={"X-API-KEY": MP_API_TOKEN},
             proxies={"http": None, "https": None},
             timeout=10
         )
         if res.status_code == 200:
             data = res.json()
             items = data if isinstance(data, list) else data.get("data", [])
-            return set(str(item.get("tmdbid")) for item in items if item.get("tmdbid"))
+            return {
+                str(item.get("media_id") or item.get("tmdbid"))
+                for item in items
+                if (item.get("media_source") in (None, "tmdb") and
+                    (item.get("media_id") or item.get("tmdbid")))
+            }
     except Exception: pass
     return set()
 
@@ -631,7 +636,8 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
     
     # 清理一下结尾可能多写的斜杠，防止拼接出错误路径
     base_url = MP_URL.rstrip('/')
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", "X-API-KEY": MP_API_TOKEN}
+    mp_timeout = (10, 60)  # 连接超时 10 秒，读取超时 60 秒
     # 转换媒体类型给 MP 识别
     mp_type = "电影" if item_type == "Movie" else "电视剧"
     
@@ -639,7 +645,8 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
         "name": name,
         "year": year,
         "type": mp_type,
-        "tmdbid": int(tmdb_id)
+        "media_source": "tmdb",
+        "media_id": str(tmdb_id)
     }
 
     # 电视剧需要先查询 MP 中的完整季列表，再逐季创建订阅。
@@ -648,15 +655,23 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
         try:
             seasons_res = session.get(
                 f"{base_url}/api/v1/media/seasons",
-                params={"apikey": MP_API_TOKEN, "mediaid": f"tmdb:{tmdb_id}"},
-                proxies={"http": None, "https": None}, timeout=10
+                headers=headers,
+                params={"media_source": "tmdb", "media_id": str(tmdb_id)},
+                proxies={"http": None, "https": None}, timeout=mp_timeout
             )
             if seasons_res.status_code != 200:
                 return False, f"查询季度失败 (HTTP {seasons_res.status_code})", empty_detail
 
-            seasons_data = seasons_res.json()
+            seasons_payload = seasons_res.json()
+            if isinstance(seasons_payload, dict) and "data" in seasons_payload:
+                if seasons_payload.get("success") is False:
+                    reason = seasons_payload.get("message") or str(seasons_payload)
+                    return False, f"查询季度失败 ({reason})", empty_detail
+                seasons_data = seasons_payload.get("data")
+            else:
+                seasons_data = seasons_payload
             if not isinstance(seasons_data, list):
-                return False, f"查询季度返回格式异常 ({str(seasons_data)[:80]})", empty_detail
+                return False, f"查询季度返回格式异常 ({str(seasons_payload)[:80]})", empty_detail
 
             seasons = []
             for season_info in seasons_data:
@@ -678,11 +693,15 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
             for season in seasons:
                 # 防重必须精确到季度，不能只按电视剧 TMDb ID 判断。
                 check_res = session.get(
-                    f"{base_url}/api/v1/subscribe/media/tmdb:{tmdb_id}",
-                    params={"apikey": MP_API_TOKEN, "season": season},
-                    proxies={"http": None, "https": None}, timeout=10
+                    f"{base_url}/api/v1/subscribe/media/{tmdb_id}",
+                    headers=headers,
+                    params={"media_source": "tmdb", "season": season},
+                    proxies={"http": None, "https": None}, timeout=mp_timeout
                 )
-                if check_res.status_code == 200 and check_res.json().get("id"):
+                check_data = check_res.json() if check_res.status_code == 200 else {}
+                if isinstance(check_data, dict) and "data" in check_data:
+                    check_data = check_data.get("data") or {}
+                if isinstance(check_data, dict) and check_data.get("id"):
                     existed_seasons.append(season)
                     print(f"      -> 第 {season} 季已存在于 MP，跳过")
                     continue
@@ -691,8 +710,8 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
                 season_payload["season"] = season
                 res = session.post(
                     f"{base_url}/api/v1/subscribe/",
-                    headers=headers, params={"apikey": MP_API_TOKEN},
-                    json=season_payload, proxies={"http": None, "https": None}, timeout=10
+                    headers=headers, json=season_payload,
+                    proxies={"http": None, "https": None}, timeout=mp_timeout
                 )
 
                 if res.status_code == 200:
@@ -730,15 +749,15 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
             }
 
         except requests.exceptions.Timeout:
-            return False, "查询或订阅季度超时 (10s)", empty_detail
+            return False, "查询或订阅季度超时 (连接10s/读取60s)", empty_detail
         except Exception as e:
             return False, f"季度订阅异常: {str(e)[:50]}", empty_detail
     
     try:
         res = session.post(
-            f"{base_url}/api/v1/subscribe/", 
-            headers=headers, params={"apikey": MP_API_TOKEN},
-            json=payload, proxies={"http": None, "https": None}, timeout=10
+            f"{base_url}/api/v1/subscribe/",
+            headers=headers, json=payload,
+            proxies={"http": None, "https": None}, timeout=mp_timeout
         )
         if res.status_code == 200:
             data = res.json()
@@ -746,7 +765,7 @@ def subscribe_to_moviepilot(name, year, tmdb_id, item_type):
                 return True, "", empty_detail
             return False, f"API 业务拒绝 ({data.get('message') or str(data)})", empty_detail
         return False, f"HTTP 状态码错误 {res.status_code}", empty_detail
-    except requests.exceptions.Timeout: return False, "网络请求超时 (10s)", empty_detail
+    except requests.exceptions.Timeout: return False, "网络请求超时 (连接10s/读取60s)", empty_detail
     except Exception as e: return False, f"异常: {str(e)[:30]}", empty_detail
 
 def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=False):
