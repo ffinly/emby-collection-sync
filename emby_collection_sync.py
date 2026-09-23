@@ -122,6 +122,21 @@ CUSTOM_LISTS = [
     {"name": "豆瓣 - 实时热门电影榜", "id": "8648550", "type": "Movie", "mp_subscribe": 3, "notify_missing": False},
     {"name": "豆瓣 - 实时热门电视榜", "id": "8648551", "type": "Series", "mp_subscribe": False, "notify_missing": False}
 ]
+
+# 与 README 的核心榜单图标保持一致，按 TMDb 列表 ID 匹配，避免改名影响通知。
+LIST_EMOJIS = {
+    "8647021": "🍿", "8647022": "📺", "8647023": "🎞️",
+    "8649058": "🏛️", "8649050": "🏛️", "8649041": "⭐",
+    "8648843": "🏆", "8648844": "🌿", "8648848": "🎭",
+    "8648849": "🌐", "8648850": "🥂", "8648851": "🕊️",
+    "8648852": "🐻", "8648854": "🦁", "8648855": "🍁",
+    "8648802": "🎬", "8649224": "🔥", "8649225": "🎨",
+    "8649231": "📽️", "8649219": "📝", "8648821": "🎥",
+    "8649029": "📖", "8649108": "💽", "8649217": "✨",
+    "8649218": "🔴", "8649220": "🎞️", "8648547": "📈",
+    "8648548": "📺", "8648549": "🌍", "8648550": "🔥",
+    "8648551": "🔥",
+}
 # === 历史遗留合集名称映射 (用于清理旧名称) ===
 # 格式: {"新名称": ["旧名称1", "旧名称2"]}
 OLD_COLLECTION_NAMES = {
@@ -411,7 +426,7 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
             )
             
             if res.status_code in [200, 204]:
-                # 2. 致命一击：强制要求 Emby 抛弃旧缓存，深度刷新前端图片数据
+                # 刷新 Emby 图片缓存
                 try:
                     session.post(
                         f"{EMBY_URL}/emby/Items/{col_id}/Refresh", 
@@ -431,7 +446,7 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
     return False
 
 def fix_missing_collection_posters():
-    """扫描所有合集，如果没有封面，取合集内最新的影视海报进行修复 (自动排除脚本管理的榜单)"""
+    """扫描所有合集，如果没有封面，取合集内最早上映的影视海报进行修复 (自动排除脚本管理的榜单)"""
     # 动态生成排除列表：包含所有自定义榜单、豆瓣分类以及国产合集
     exclude_names = [lst["name"] for lst in CUSTOM_LISTS] + \
                     [lst["name"] for lst in DOUBAN_GENRE_LISTS] + \
@@ -469,12 +484,10 @@ def fix_missing_collection_posters():
                             item_type = "movie" if item.get("Type") == "Movie" else "tv"
                             poster_path = get_original_poster(tmdb_id, item_type)
                             if poster_path:
-                                sync_stats["pending_posters"].append({"id": col_id, "path": poster_path, "name": col_name})
-                                sync_stats["fixed_cover_names"].append(col_name) # <--- 新增这行，记录名字
+                                sync_stats["pending_posters"].append({"id": col_id, "path": poster_path, "name": col_name, "is_fixed_cover": True})
                                 fixed_count += 1
                             break # 无论成功与否，只尝试最老的一部即可跳出
                             
-        sync_stats["fixed_covers"] = fixed_count
         if fixed_count > 0:
             print(f"✅ 扫描完毕，发现 {fixed_count} 个无封面合集待修复！")
         else:
@@ -780,7 +793,7 @@ def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=Fal
     
     if not tmdb_items:
         print("  [警告] 获取到的 TMDb 列表为空！请检查列表 ID 或网络。")
-        sync_stats["lists_report"][name] = {"is_genre": is_genre, "total": 0, "matched": 0, "missing": []}
+        sync_stats["lists_report"][name] = {"is_genre": is_genre, "id": list_id, "type": item_type, "total": 0, "matched": 0, "missing": []}
         return
 
     # 复用 process() 启动时构建的全库索引，避免每个榜单重复扫描 Emby。
@@ -832,12 +845,12 @@ def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=Fal
                 else:
                     print(f"    -> ⏭️ 排名 {idx} 超过设定阈值 ({mp_sub_switch})，仅报告不订阅")
             
-            # 动态选择对应的排除列表 ---
+            # 按媒体类型选择排除列表
             current_exclude_list = MP_EXCLUDE_MOVIE_IDS if item_type == "Movie" else MP_EXCLUDE_SERIES_IDS
             
             # 触发 MoviePilot 自动订阅并防重
             if MP_ENABLE and should_subscribe:
-                if t_id in current_exclude_list: # --- 新增: 判断是否在排除列表中 ---
+                if t_id in current_exclude_list:
                     print("    -> 🚫 命中排除列表，跳过订阅")
                     sync_stats["mp_excluded"] += 1
                     if item_type == "Movie":
@@ -891,9 +904,9 @@ def process_custom_list(list_info, mp_existing_ids, emby_tmdb_maps, is_genre=Fal
         else:
             print(f"  [跳过] 本地匹配资源不足 2 部 ({len(unique_ids)} 部)，暂不创建合集")
         
-    # 新增提取 notify_missing 配置，默认为 True
+    # 未配置时默认在通知中展示缺失条目
     sync_stats["lists_report"][name] = {
-        "is_genre": is_genre, "type": item_type, "total": len(tmdb_items),
+        "is_genre": is_genre, "id": list_id, "type": item_type, "total": len(tmdb_items),
         "matched": len(matched_ids), "missing": missing_items,
         "notify_missing": list_info.get("notify_missing", True) 
     }
@@ -926,13 +939,13 @@ def process():
         process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=True)
 
     # --- 阶段二：同步核心榜单 (中间执行) ---
-    print("\n" + "="*45 + "\n🎬 阶段三：同步核心榜单\n" + "="*45)
+    print("\n" + "="*45 + "\n🎬 阶段二：同步核心榜单\n" + "="*45)
     # 使用 reversed 确保 CUSTOM_LISTS 里的第一个榜单最后被创建，稳居 Emby 首位
     for lst in reversed(CUSTOM_LISTS): 
         process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=False)
 	
     # --- 阶段三：处理国产影视系列 (最后执行，排序最前) ---
-    print("\n" + "="*45 + "\n🇨🇳 阶段二：处理国产影视系列...\n" + "="*45)
+    print("\n" + "="*45 + "\n🇨🇳 阶段三：处理国产影视系列...\n" + "="*45)
     
     sort_key = "DateCreated" if DOMESTIC_POSTER_MODE == "added" else "PremiereDate"
     
@@ -947,11 +960,11 @@ def process():
                     dom_series.append(s)
             except: pass
             
-    # 修复隐患：防止 PremiereDate 为 None 导致排序报错
+    # 缺少日期时使用默认值排序
     dom_series.sort(key=lambda x: x.get(sort_key) or "0000-00-00", reverse=True)
     
     dom_series_poster = ""
-    # 修复逻辑：遍历查找第一个有 tmdb 且能获取到海报的剧集
+    # 查找第一个可获取海报的剧集
     for s in dom_series:
         tmdb_id = s.get("ProviderIds", {}).get("Tmdb")
         if tmdb_id:
@@ -967,11 +980,11 @@ def process():
     dom_movies = [m for m in all_movies if any(pk in m.get("Path", "") for pk in PATH_KEYWORDS) or 
                   any(any(kw.lower() in loc.lower() for kw in DOMESTIC_KEYWORDS) for loc in m.get("ProductionLocations", []))]
                   
-    # 修复隐患：防止 PremiereDate 为 None 导致排序报错
+    # 缺少日期时使用默认值排序
     dom_movies.sort(key=lambda x: x.get(sort_key) or "0000-00-00", reverse=True)
     
     dom_movie_poster = ""
-    # 修复逻辑：遍历查找第一个有 tmdb 且能获取到海报的电影
+    # 查找第一个可获取海报的电影
     for m in dom_movies:
         tmdb_id = m.get("ProviderIds", {}).get("Tmdb")
         if tmdb_id:
@@ -987,6 +1000,7 @@ def process():
     fix_missing_collection_posters()
 
     # --- 阶段五：统一处理海报注入与缓存刷新 ---
+    list_poster_count = 0
     if sync_stats["pending_posters"]:
         print("\n" + "="*45 + "\n🖼️ 阶段五：统一结算海报注入与缓存刷新\n" + "="*45)
         print(f"  ⏳ 正在等待 Emby 后台队列消化其他任务 (延时 5 秒)...")
@@ -994,7 +1008,12 @@ def process():
         
         for p in sync_stats["pending_posters"]:
             poster_injected = upload_poster_to_emby(p["id"], p["path"], p["name"])
-            if not poster_injected:
+            if poster_injected and p.get("is_fixed_cover"):
+                sync_stats["fixed_covers"] += 1
+                sync_stats["fixed_cover_names"].append(p["name"])
+            elif poster_injected:
+                list_poster_count += 1
+            elif not poster_injected:
                 sync_stats["poster_failed"].append(p["name"])
             time.sleep(0.5) # 连续请求间的轻微防抖
 
@@ -1011,8 +1030,8 @@ def process():
                 short_name = list_name.replace("豆瓣电影 - ", "").replace(" - Top 20", "")
                 genre_missing_summary.append(f"{short_name}(缺{len(data['missing'])})")
         else:
-            # 1. 判断类型分配 Emoji
-            icon = "📺" if data.get("type") == "Series" else "🎬"        
+            # 优先使用 README 对应的榜单图标，自定义榜单保留类型图标。
+            icon = LIST_EMOJIS.get(str(data.get("id")), "📺" if data.get("type") == "Series" else "🎬")
             
             # 2. 智能判断缺失状态：如果是 0，显示 ✅；如果大于 0，显示 (缺X)
             missing_count = len(data['missing'])
@@ -1063,9 +1082,6 @@ def process():
             report.append("  - 本次无订阅变动")
     else: report.append("🍿 MoviePilot 自动订阅未开启")
 
-    # 计算当前脚本专属榜单的海报注入数量（总数 - 现成合集修复数）
-    list_poster_count = len(sync_stats['pending_posters']) - sync_stats['fixed_covers']
-    
     report.extend([
         f"⭐ 同步全员收藏人次: {sync_stats['favs']}",
         f"🖼️ 榜单合集海报注入: {list_poster_count} 个",
@@ -1079,13 +1095,15 @@ def process():
         if not data.get("is_genre") and data["missing"]:
             if data.get("notify_missing", True):
                 # 开启了详细通知的榜单，展示前3个缺失影片
-                report.append(f"\n📝 【{list_name}】缺失清单:")
+                icon = LIST_EMOJIS.get(str(data.get("id")), "📝")
+                report.append(f"\n{icon} 【{list_name}】缺失清单:")
                 for m in data["missing"][:3]: report.append(f"  • {m}")
                 if len(data["missing"]) > 3: report.append(f"  • ... 等共 {len(data['missing'])} 部")
             else:
                 # 关闭详细通知的榜单，提取精简名字加入折叠概览
                 short_name = list_name.replace("豆瓣 - ", "").replace("电影节", "").replace("最佳", "")
-                custom_missing_summary.append(f"{short_name}(缺{len(data['missing'])})")
+                icon = LIST_EMOJIS.get(str(data.get("id")), "📝")
+                custom_missing_summary.append(f"{icon} {short_name}(缺{len(data['missing'])})")
 
     # 1. 输出被折叠的主榜单概览
     if custom_missing_summary:
@@ -1104,8 +1122,10 @@ def process():
     # 追加海报注入失败清单
     if sync_stats["poster_failed"]:
         report.append("\n🖼️⚠️ 【海报注入失败清单】:")
-        for f in sync_stats["poster_failed"]: 
+        for f in sync_stats["poster_failed"][:3]:
             report.append(f"  • {f}")
+        if len(sync_stats["poster_failed"]) > 3:
+            report.append(f"  • ... 等共 {len(sync_stats['poster_failed'])} 个")
 
     # 追加无封面合集修复清单
     if sync_stats["fixed_cover_names"]:
