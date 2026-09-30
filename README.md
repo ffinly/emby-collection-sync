@@ -20,6 +20,8 @@
 * 🏛️ **S&S Directors - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649058?view=grid)
 * 🏛️ **S&S Critics - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649050?view=grid)
 * ⭐ **AFI Top 100 (2007)**: [查看网格墙视图](https://www.themoviedb.org/list/8649041?view=grid)
+* 📰 **NYT - 100 Best Movies of the 21st Century (2025)**: [查看网格墙视图](https://www.themoviedb.org/list/8701141?view=grid)
+* 📡 **NYT - 100 Best TV Shows of the 21st Century (2026)**: [查看网格墙视图](https://www.themoviedb.org/list/8701142?view=grid)
 
 #### 🌍 第三梯队：全球最具含金量大奖矩阵
 * 🏆 **奥斯卡历届最佳影片**: [查看网格墙视图](https://www.themoviedb.org/list/8648843?view=grid)
@@ -145,6 +147,8 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🏛️ **S&S Directors - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649058?view=grid)
 * 🏛️ **S&S Critics - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649050?view=grid)
 * ⭐ **AFI Top 100 (2007)**: [View Grid](https://www.themoviedb.org/list/8649041?view=grid)
+* 📰 **NYT - 100 Best Movies of the 21st Century (2025)**: [View Grid](https://www.themoviedb.org/list/8701141?view=grid)
+* 📡 **NYT - 100 Best TV Shows of the 21st Century (2026)**: [View Grid](https://www.themoviedb.org/list/8701142?view=grid)
 
 #### 🌍 Tier 3: Global Prestigious Film Awards
 * 🏆 **Oscar Winning Films: Best Picture**: [View Grid](https://www.themoviedb.org/list/8648843?view=grid)

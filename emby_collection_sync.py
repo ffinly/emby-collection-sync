@@ -86,6 +86,8 @@ CUSTOM_LISTS = [
     {"name": "S&S Directors - Greatest Films", "id": "8649058", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "S&S Critics - Greatest Films", "id": "8649050", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "AFI Top 100 (2007)", "id": "8649041", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "NYT - 100 Best Movies of the 21st Century (2025)", "id": "8701141", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "NYT - 100 Best TV Shows of the 21st Century (2026)", "id": "8701142", "type": "Series", "mp_subscribe": False, "notify_missing": False},
 
     # === 第三梯队：全球顶尖电影节与行业大奖（高品质获奖佳作与大师巡礼） ===
     {"name": "奥斯卡历届最佳影片", "id": "8648843", "type": "Movie", "mp_subscribe": 1, "notify_missing": True},
@@ -127,6 +129,7 @@ CUSTOM_LISTS = [
 LIST_EMOJIS = {
     "8647021": "🍿", "8647022": "📺", "8647023": "🎞️",
     "8649058": "🏛️", "8649050": "🏛️", "8649041": "⭐",
+    "8701141": "📰", "8701142": "📡",
     "8648843": "🏆", "8648844": "🌿", "8648848": "🎭",
     "8648849": "🌐", "8648850": "🥂", "8648851": "🕊️",
     "8648852": "🐻", "8648854": "🦁", "8648855": "🍁",
