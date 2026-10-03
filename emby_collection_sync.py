@@ -75,7 +75,7 @@ BATCH_SIZE = 50
 #   - True  = 全量订阅（只要库里缺失就发给 MP 订阅）
 #   - False = 仅报告不订阅（建议 TV 榜单设为 False，避免狂下几十季剧集）
 #   - 整数  = 仅订阅榜单前 N 部（例如填 3，代表只检查榜单前 3 名，缺失则发给 MP）
-# notify_missing: 是否在通知中打印具体的缺失片名。设为 False 时，仅在一句话概览中显示缺失数量，防止通知过长。
+# notify_missing: 是否在通知中打印具体的缺失片名。设为 False 时，仅在顶部汇总中显示缺失数量。
 CUSTOM_LISTS = [
     # === 第一梯队：大众必看与绝对主流（最高频点击，全家日常观影的绝对 C 位） ===
     {"name": "IMDb Top 250 Movies", "id": "8647021", "type": "Movie", "mp_subscribe": True, "notify_missing": True},
@@ -1092,8 +1092,6 @@ def process():
         f"⏱️ 任务总耗时: {int(time.time() - start_time)} 秒", "━━━━━━━━━━━━━━"
     ])
     
-    custom_missing_summary = [] # 用于收集被折叠的主榜单概览
-    
     for list_name, data in reversed(list(sync_stats["lists_report"].items())):
         if not data.get("is_genre") and data["missing"]:
             if data.get("notify_missing", True):
@@ -1102,17 +1100,8 @@ def process():
                 report.append(f"\n{icon} 【{list_name}】缺失清单:")
                 for m in data["missing"][:3]: report.append(f"  • {m}")
                 if len(data["missing"]) > 3: report.append(f"  • ... 等共 {len(data['missing'])} 部")
-            else:
-                # 关闭详细通知的榜单，提取精简名字加入折叠概览
-                short_name = list_name.replace("豆瓣 - ", "").replace("电影节", "").replace("最佳", "")
-                icon = LIST_EMOJIS.get(str(data.get("id")), "📝")
-                custom_missing_summary.append(f"{icon} {short_name}(缺{len(data['missing'])})")
 
-    # 1. 输出被折叠的主榜单概览
-    if custom_missing_summary:
-        report.append(f"\n📝 【其他榜单缺失概览】:\n" + " | ".join(custom_missing_summary))
-
-    # 2. 恢复并输出豆瓣28大分类的精简概览模式
+    # 恢复并输出豆瓣28大分类的精简概览模式
     #if genre_missing_summary: 
     #    report.append(f"\n📝 【豆瓣分类缺失概览】:\n" + " | ".join(genre_missing_summary))
     
