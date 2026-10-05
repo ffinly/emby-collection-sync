@@ -121,8 +121,8 @@ CUSTOM_LISTS = [
     {"name": "豆瓣 - 一周口碑电影榜", "id": "8648547", "type": "Movie", "mp_subscribe": 3, "notify_missing": True},
     {"name": "豆瓣 - 华语口碑剧集榜", "id": "8648548", "type": "Series", "mp_subscribe": False, "notify_missing": True},
     {"name": "豆瓣 - 全球口碑剧集榜", "id": "8648549", "type": "Series", "mp_subscribe": False, "notify_missing": True},
-    {"name": "豆瓣 - 实时热门电影榜", "id": "8648550", "type": "Movie", "mp_subscribe": 3, "notify_missing": False},
-    {"name": "豆瓣 - 实时热门电视榜", "id": "8648551", "type": "Series", "mp_subscribe": False, "notify_missing": False}
+    {"name": "豆瓣 - 实时热门电影榜", "id": "8648550", "type": "Movie", "mp_subscribe": 3, "notify_missing": True},
+    {"name": "豆瓣 - 实时热门电视榜", "id": "8648551", "type": "Series", "mp_subscribe": False, "notify_missing": True}
 ]
 
 # 与 README 的核心榜单图标保持一致，按 TMDb 列表 ID 匹配，避免改名影响通知。
@@ -549,7 +549,7 @@ def update_collection_by_name(name, item_ids, list_desc="", poster_path=""):
             print(f"  [错误] 无法获取新创建的合集 ID: {name}")
             return
 
-        print(f"📦 [成功] 已重新生成合集: {name} (共 {len(item_ids)} 部影片)")
+        print(f"📦 [成功] 已重新生成合集: {name} (共 {len(item_ids)} 部)")
         
         # 4. 如果影片总数超过初始批次，循环添加剩余影片
         if len(item_ids) > BATCH_SIZE:
