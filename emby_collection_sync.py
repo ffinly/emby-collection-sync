@@ -146,7 +146,7 @@ OLD_COLLECTION_NAMES = {
     "LB Top 500 Films": ["Letterboxd's Top 500 Films"]
 }
 
-# 7. 豆瓣 28 大分类列表配置 (独立开关配置)
+# 7. 豆瓣电影 28 大分类列表配置 (独立开关配置)
 # 排序规则: 同一分类 -> 近期热门 -> Top 20 -> 高分经典 -> 冷门佳作
 DOUBAN_GENRE_LISTS = [
     # 剧情
@@ -290,8 +290,34 @@ DOUBAN_GENRE_LISTS = [
     {"name": "豆瓣电影 - 黑色电影 - Top 20", "id": "8647709", "mp_subscribe": False}
 ]
 
+# 豆瓣电视剧地区与类型榜单
+DOUBAN_TV_LISTS = [
+    {"name": "豆瓣电视剧 - 大陆剧 - 近期热门", "id": "8702683", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 大陆剧 - 高分经典", "id": "8702684", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 大陆剧 - 冷门佳作", "id": "8702685", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 美剧 - 近期热门", "id": "8702686", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 美剧 - 高分经典", "id": "8702687", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 美剧 - 冷门佳作", "id": "8702688", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 英剧 - 高分经典", "id": "8702689", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 英剧 - 冷门佳作", "id": "8702690", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 日剧 - 近期热门", "id": "8702691", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 日剧 - 高分经典", "id": "8702692", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 日剧 - 冷门佳作", "id": "8702693", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 韩剧 - 近期热门", "id": "8702694", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 韩剧 - 高分经典", "id": "8702695", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 韩剧 - 冷门佳作", "id": "8702696", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 港剧 - 高分经典", "id": "8702697", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 港剧 - 冷门佳作", "id": "8702698", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 台剧 - 高分经典", "id": "8702699", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 台剧 - 冷门佳作", "id": "8702700", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 泰剧 - 冷门佳作", "id": "8702701", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 欧洲剧 - 近期热门", "id": "8702702", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 欧洲剧 - 高分经典", "id": "8702703", "type": "Series", "mp_subscribe": False},
+    {"name": "豆瓣电视剧 - 动画剧集 - 高分经典", "id": "8702704", "type": "Series", "mp_subscribe": False},
+]
+
 # 8. 海报封面抓取策略配置
-# 【针对作用域：自定义 TMDb 榜单 (CUSTOM_LISTS) & 豆瓣 28 大分类 (DOUBAN_GENRE_LISTS)】
+# 【针对作用域：自定义 TMDb 榜单、豆瓣电影分类及电视剧地区与类型榜单】
 # "list"    = 绝对榜单第一：不管库里有没有，强制抓取 TMDb 榜单第一名的海报作封面
 # "library" = 库内第一名：抓取你的 Emby 库中实际拥有的、在榜单中排名最高的那部影视作封面
 LIST_POSTER_MODE = "library" 
@@ -453,6 +479,7 @@ def fix_missing_collection_posters():
     # 动态生成排除列表：包含所有自定义榜单、豆瓣分类以及国产合集
     exclude_names = [lst["name"] for lst in CUSTOM_LISTS] + \
                     [lst["name"] for lst in DOUBAN_GENRE_LISTS] + \
+                    [lst["name"] for lst in DOUBAN_TV_LISTS] + \
                     ["国产电影", "国产电视剧"]
     
     print("\n" + "="*45 + "\n🖼️ 阶段四：全局无封面合集修复 (自动排除榜单)\n" + "="*45)
@@ -938,7 +965,7 @@ def process():
     # --- 阶段一：同步豆瓣分类榜单 (最先执行，排序在后) ---
     print("\n" + "="*45 + "\n📂 阶段一：同步豆瓣分类榜单\n" + "="*45)
     # 使用 reversed 确保列表第一项比最后一项晚创建，从而排在前面
-    for lst in reversed(DOUBAN_GENRE_LISTS): 
+    for lst in reversed(DOUBAN_GENRE_LISTS + DOUBAN_TV_LISTS):
         process_custom_list(lst, mp_existing_ids, emby_tmdb_maps, is_genre=True)
 
     # --- 阶段二：同步核心榜单 (中间执行) ---
@@ -1023,11 +1050,16 @@ def process():
     # --- 阶段六：生成整理报告与推送 ---
     report = ["📊 Emby 智能合集整理汇总", "━━━━━━━━━━━━━━"]
     genre_matched = 0
+    tv_genre_matched = 0
     genre_missing_summary = []
     
     for list_name, data in reversed(list(sync_stats["lists_report"].items())):
         if data.get("is_genre"):
-            if data["matched"] >= 2: genre_matched += 1
+            if data["matched"] >= 2:
+                if data.get("type") == "Series":
+                    tv_genre_matched += 1
+                else:
+                    genre_matched += 1
             if data["missing"]:
                 # 智能截取名字，防止概览通知过长，比如把 "豆瓣电影 - 剧情 - Top 20" 变成 "剧情"
                 short_name = list_name.replace("豆瓣电影 - ", "").replace(" - Top 20", "")
@@ -1044,7 +1076,8 @@ def process():
             report.append(f"{icon} {list_name}: {data['matched']}/{data['total']} {missing_text}")
         
     report.extend([
-        f"", f"📂 豆瓣分类同步: 达标生成 {genre_matched} 个合集", f"🇨🇳 国产影视整理",
+        f"", f"📂 豆瓣电影分类同步: 达标生成 {genre_matched} 个合集",
+        f"📺 豆瓣电视剧分类同步: 达标生成 {tv_genre_matched} 个合集", f"🇨🇳 国产影视整理",
         f"  - 国产电影: {sync_stats['movies']} 部", f"  - 国产剧集: {sync_stats['series']} 部", f""
     ])
     

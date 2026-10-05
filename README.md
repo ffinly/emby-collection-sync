@@ -8,7 +8,7 @@
 
 🚀 **面向 Emby 影音库的全自动合集管理与追新补片流水线。**
 
-一键同步 IMDb/豆瓣 Top 250/Letterboxd/TSPDT 等权威主榜、全球 9 大权威电影节大奖及豆瓣 28 大细分领域多维度榜单（近期热门、Top 20、高分经典、冷门佳作），智能排查本地缺失，**并支持自定义排除列表联动 MoviePilot 实现自动化补片**。系统支持自动聚合华语影视，并**原生支持原语言海报直入与灵活的智能抓取策略，结合底层异步队列引擎，彻底解决 Emby 生成默认四宫格封面导致的卡死痛点**。实现从全自动化整理到观影的完整闭环。
+一键同步 IMDb/豆瓣 Top 250/Letterboxd/TSPDT 等权威主榜、全球 9 大权威电影节大奖、豆瓣电影 28 大分类多维度榜单（近期热门、Top 20、高分经典、冷门佳作）及豆瓣电视剧地区与类型榜单，智能排查本地缺失，**并支持自定义排除列表联动 MoviePilot 实现自动化补片**。系统支持自动聚合华语影视，并**原生支持原语言海报直入与灵活的智能抓取策略，结合底层异步队列引擎，彻底解决 Emby 生成默认四宫格封面导致的卡死痛点**。实现从全自动化整理到观影的完整闭环。
 
 ### 🔗 线上公开最新榜单列表
 以下 TMDB 列表完全由自动化爬虫与 ETL 流水线自动维护。**系统会在每天早上 7:30 (UTC+8) 定时执行数据抓取、比对与同步更新**，确保榜单排名与官方时刻保持一致。
@@ -58,7 +58,8 @@
 * 🔥 **豆瓣 - 实时热门电影榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648550?view=grid)
 * 🔥 **豆瓣 - 实时热门电视榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648551?view=grid)
 
-#### 📂 豆瓣 28 大分类多维度榜单
+#### 📂 豆瓣电影 28 大分类多维度榜单
+
 * 🎭 **剧情**: [Top 20](https://www.themoviedb.org/list/8647681?view=grid) | [高分经典](https://www.themoviedb.org/list/8648565?view=grid)
 * 😂 **喜剧**: [近期热门](https://www.themoviedb.org/list/8648552?view=grid) | [Top 20](https://www.themoviedb.org/list/8647682?view=grid) | [高分经典](https://www.themoviedb.org/list/8648566?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648595?view=grid)
 * 💥 **动作**: [近期热门](https://www.themoviedb.org/list/8648555?view=grid) | [Top 20](https://www.themoviedb.org/list/8647683?view=grid) | [高分经典](https://www.themoviedb.org/list/8648568?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648597?view=grid)
@@ -88,10 +89,23 @@
 * 🏃 **运动**: [Top 20](https://www.themoviedb.org/list/8647708?view=grid) | [高分经典](https://www.themoviedb.org/list/8648594?view=grid)
 * 🌑 **黑色电影**: [Top 20](https://www.themoviedb.org/list/8647709?view=grid)
 
+#### 📺 豆瓣电视剧地区与类型榜单
+
+* 🇨🇳 **大陆剧**: [近期热门](https://www.themoviedb.org/list/8702683?view=grid) | [高分经典](https://www.themoviedb.org/list/8702684?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702685?view=grid)
+* 🇺🇸 **美剧**: [近期热门](https://www.themoviedb.org/list/8702686?view=grid) | [高分经典](https://www.themoviedb.org/list/8702687?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702688?view=grid)
+* 🇬🇧 **英剧**: [高分经典](https://www.themoviedb.org/list/8702689?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702690?view=grid)
+* 🇯🇵 **日剧**: [近期热门](https://www.themoviedb.org/list/8702691?view=grid) | [高分经典](https://www.themoviedb.org/list/8702692?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702693?view=grid)
+* 🇰🇷 **韩剧**: [近期热门](https://www.themoviedb.org/list/8702694?view=grid) | [高分经典](https://www.themoviedb.org/list/8702695?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702696?view=grid)
+* 🇭🇰 **港剧**: [高分经典](https://www.themoviedb.org/list/8702697?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702698?view=grid)
+* 🇨🇳 **台剧**: [高分经典](https://www.themoviedb.org/list/8702699?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8702700?view=grid)
+* 🇹🇭 **泰剧**: [冷门佳作](https://www.themoviedb.org/list/8702701?view=grid)
+* 🇪🇺 **欧洲剧**: [近期热门](https://www.themoviedb.org/list/8702702?view=grid) | [高分经典](https://www.themoviedb.org/list/8702703?view=grid)
+* 🎨 **动画剧集**: [高分经典](https://www.themoviedb.org/list/8702704?view=grid)
+
 ### ✨ 核心特性
 
 * **🏆 顶级榜单全自动维护**
-  * 支持 IMDb/豆瓣 Top 250/Letterboxd/TSPDT 主榜单、**全球 9 大权威电影节大奖**及 **28 大豆瓣细分领域多维度榜单（近期热门、Top 20、高分经典、冷门佳作）**。
+  * 支持 IMDb/豆瓣 Top 250/Letterboxd/TSPDT 主榜单、**全球 9 大权威电影节大奖**、**豆瓣电影 28 大分类多维度榜单（近期热门、Top 20、高分经典、冷门佳作）及豆瓣电视剧地区与类型榜单**。
   * **自动简介同步**：抓取 TMDb 列表描述并写入 Emby 合集 `Overview` 字段。
   * **全员收藏**：自动将生成的合集加入所有 Emby 用户的“我的收藏”，提升常用榜单的曝光度。
 * **🖼️ 海报直入与异步性能引擎**
@@ -135,7 +149,7 @@
 
 🚀 **A fully automated collection management and media acquisition pipeline for Emby.**
 
-Seamlessly synchronize authoritative lists like IMDb/Douban Top 250/Letterboxd/TSPDT, **9 Global Prestigious Film Awards**, and Douban's 28 Genre multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces). It intelligently scans your local library for missing media, and **supports custom exclusion lists to seamlessly integrate with MoviePilot for automated downloading**. The system auto-aggregates Chinese-language media and **natively injects original-language posters using smart fetching strategies and an async queue engine to permanently resolve Emby's performance bottlenecks (UI freezes) caused by default collage generation.** Realize a complete closed-loop from automated library management to immersive viewing.
+Seamlessly synchronize authoritative lists like IMDb/Douban Top 250/Letterboxd/TSPDT, **9 Global Prestigious Film Awards**, and Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists. It intelligently scans your local library for missing media, and **supports custom exclusion lists to seamlessly integrate with MoviePilot for automated downloading**. The system auto-aggregates Chinese-language media and **natively injects original-language posters using smart fetching strategies and an async queue engine to permanently resolve Emby's performance bottlenecks (UI freezes) caused by default collage generation.** Realize a complete closed-loop from automated library management to immersive viewing.
 
 ### 🔗 Publicly Maintained TMDb Lists
 The following TMDb lists are fully maintained by automated crawlers and ETL pipelines. **Data fetching, comparison, and synchronization run daily at 07:30 (UTC+8)** to ensure rankings remain perfectly aligned with official sources.
@@ -185,7 +199,8 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🔥 **Douban - Real-time Hot Movies**: [View Grid](https://www.themoviedb.org/list/8648550?view=grid)
 * 🔥 **Douban - Real-time Hot TV Shows**: [View Grid](https://www.themoviedb.org/list/8648551?view=grid)
 
-#### 📂 Douban 28 Genre Lists
+#### 📂 Douban 28 Movie Genre Lists
+
 * 🎭 **Drama**: [Top 20](https://www.themoviedb.org/list/8647681?view=grid) | [Classics](https://www.themoviedb.org/list/8648565?view=grid)
 * 😂 **Comedy**: [Trending](https://www.themoviedb.org/list/8648552?view=grid) | [Top 20](https://www.themoviedb.org/list/8647682?view=grid) | [Classics](https://www.themoviedb.org/list/8648566?view=grid) | [Niche](https://www.themoviedb.org/list/8648595?view=grid)
 * 💥 **Action**: [Trending](https://www.themoviedb.org/list/8648555?view=grid) | [Top 20](https://www.themoviedb.org/list/8647683?view=grid) | [Classics](https://www.themoviedb.org/list/8648568?view=grid) | [Niche](https://www.themoviedb.org/list/8648597?view=grid)
@@ -215,10 +230,23 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🏃 **Sports**: [Top 20](https://www.themoviedb.org/list/8647708?view=grid) | [Classics](https://www.themoviedb.org/list/8648594?view=grid)
 * 🌑 **Film Noir**: [Top 20](https://www.themoviedb.org/list/8647709?view=grid)
 
+#### 📺 Douban TV Region & Type Lists
+
+* 🇨🇳 **Mainland China**: [Trending](https://www.themoviedb.org/list/8702683?view=grid) | [Classics](https://www.themoviedb.org/list/8702684?view=grid) | [Niche](https://www.themoviedb.org/list/8702685?view=grid)
+* 🇺🇸 **US**: [Trending](https://www.themoviedb.org/list/8702686?view=grid) | [Classics](https://www.themoviedb.org/list/8702687?view=grid) | [Niche](https://www.themoviedb.org/list/8702688?view=grid)
+* 🇬🇧 **UK**: [Classics](https://www.themoviedb.org/list/8702689?view=grid) | [Niche](https://www.themoviedb.org/list/8702690?view=grid)
+* 🇯🇵 **Japan**: [Trending](https://www.themoviedb.org/list/8702691?view=grid) | [Classics](https://www.themoviedb.org/list/8702692?view=grid) | [Niche](https://www.themoviedb.org/list/8702693?view=grid)
+* 🇰🇷 **South Korea**: [Trending](https://www.themoviedb.org/list/8702694?view=grid) | [Classics](https://www.themoviedb.org/list/8702695?view=grid) | [Niche](https://www.themoviedb.org/list/8702696?view=grid)
+* 🇭🇰 **Hong Kong**: [Classics](https://www.themoviedb.org/list/8702697?view=grid) | [Niche](https://www.themoviedb.org/list/8702698?view=grid)
+* 🇨🇳 **Taiwan, China**: [Classics](https://www.themoviedb.org/list/8702699?view=grid) | [Niche](https://www.themoviedb.org/list/8702700?view=grid)
+* 🇹🇭 **Thailand**: [Niche](https://www.themoviedb.org/list/8702701?view=grid)
+* 🇪🇺 **Europe**: [Trending](https://www.themoviedb.org/list/8702702?view=grid) | [Classics](https://www.themoviedb.org/list/8702703?view=grid)
+* 🎨 **Animation**: [Classics](https://www.themoviedb.org/list/8702704?view=grid)
+
 ### ✨ Core Features
 
 * **🏆 Automated Top List Maintenance**
-  * Supports IMDb/Douban Top 250/Letterboxd/TSPDT Lists, **9 Global Prestigious Film Awards**, and **Multi-dimensional Douban Genre Lists (Recent Hot, Top 20, High-Scoring Classics, Niche Masterpieces)**.
+  * Supports IMDb/Douban Top 250/Letterboxd/TSPDT Lists, **9 Global Prestigious Film Awards**, and **Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists**.
   * **Metadata Sync**: Fetches TMDb list descriptions and writes them to the Emby Collection `Overview`.
   * **Global Favorites**: Automatically adds generated collections to "My Favorites" for all Emby users, boosting visibility.
 * **🖼️ Poster Injection & Async Performance Engine**
