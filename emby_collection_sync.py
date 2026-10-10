@@ -12,7 +12,7 @@ Emby 自动化综合管理工具 (青龙面板专版)
 4. 自动订阅：支持将缺失的影视一键推送到 MoviePilot 进行自动订阅下载。
 5. 国产整理：基于文件路径关键字或 TMDb 产地数据，自动聚合国产影视。
 6. 全员收藏：自动将生成的合集加入所有 Emby 用户的“我的收藏”。
-7. 封面修复：自动扫描所有无封面的合集，提取其中最早上映的影视海报进行兜底修复。
+7. 封面修复：修复无封面合集，并为缺少主封面的电影和剧集补充原语言海报。
 8. 队列结算：采用异步延时策略，等底层 SQLite 完全落盘后统一结算海报注入，极致性能。
 
 【青龙面板 食用指南】
@@ -340,6 +340,7 @@ session.verify = False
 sync_stats = {
     "movies": 0, "series": 0, "favs": 0, "fixed_covers": 0,
     "fixed_cover_names": [],
+    "fixed_media_covers": {"Movie": [], "Series": []},
     "mp_subscribed": 0, "mp_existed": 0, "mp_failed": [], 
     "mp_excluded": 0,
     "mp_movie_subscribed": 0, "mp_movie_existed": 0,
@@ -373,7 +374,7 @@ def add_to_all_users_favorites(item_id, item_name):
         except: continue
     if count > 0: sync_stats["favs"] += count
 
-def get_emby_items(item_type, fields="ProductionLocations,Path,ProviderIds,PremiereDate,DateCreated"):
+def get_emby_items(item_type, fields="ProductionLocations,Path,ProviderIds,PremiereDate,DateCreated,ImageTags"):
     url = f"{EMBY_URL}/emby/Items"
     params = {"api_key": EMBY_API_KEY, "IncludeItemTypes": item_type, "Recursive": True, "Fields": fields, "Limit": 20000}
     return session.get(url, params=params).json().get("Items", [])
@@ -398,23 +399,30 @@ def purge_collection_metadata(col_id):
             session.post(f"{EMBY_URL}/emby/Items/{col_id}", params={"api_key": EMBY_API_KEY}, json=item_info, timeout=10)
     except Exception: pass
 
-def get_original_poster(tmdb_id, item_type="movie"):
+def get_original_poster(tmdb_id, item_type="movie", strict_original=False):
     """获取指定影视的【原语言】竖版海报路径"""
     try:
         # 1. 查出原语言 (original_language)
         detail_url = f"https://api.themoviedb.org/3/{item_type}/{tmdb_id}"
-        detail_res = session.get(detail_url, params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5).json()
-        orig_lang = detail_res.get("original_language", "en")
+        detail_response = session.get(detail_url, params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5)
+        detail_response.raise_for_status()
+        detail_res = detail_response.json()
+        orig_lang = detail_res.get("original_language") or ("" if strict_original else "en")
         
         # 2. 获取所有的海报列表 (不传 language 参数获取全部)
         img_url = f"https://api.themoviedb.org/3/{item_type}/{tmdb_id}/images"
-        img_res = session.get(img_url, params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5).json()
+        img_response = session.get(img_url, params={"api_key": TMDB_API_KEY}, proxies=PROXIES, timeout=5)
+        img_response.raise_for_status()
+        img_res = img_response.json()
         posters = img_res.get("posters", [])
         
         # 3. 筛选第一张匹配原语言的海报
         for p in posters:
-            if p.get("iso_639_1") == orig_lang:
+            if orig_lang and p.get("iso_639_1") == orig_lang and p.get("file_path"):
                 return p.get("file_path")
+
+        if strict_original:
+            return ""
         
         # 4. 兜底逻辑：如果没有严格匹配的，拿评分最高的第一张，或默认的 poster_path
         if posters:
@@ -423,7 +431,7 @@ def get_original_poster(tmdb_id, item_type="movie"):
     except Exception:
         return ""
 
-def upload_poster_to_emby(col_id, poster_path, col_name):
+def upload_poster_to_emby(col_id, poster_path, col_name, only_if_missing=False):
     """
     恢复 Emby 特色的 Base64 上传方式，配合错峰延时与强制刷新解决卡封面问题
     """
@@ -438,12 +446,19 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
             b64_image = base64.b64encode(img_res.content).decode('utf-8')
             mime_type = img_res.headers.get('Content-Type', 'image/jpeg')
             
-            # 强制删除旧的封面，防止 Emby 缓存卡死
-            try:
-                # 预清理缓存
-                session.delete(f"{EMBY_URL}/emby/Items/{col_id}/Images/Primary", params={"api_key": EMBY_API_KEY}, timeout=5)
-                time.sleep(1.0) # 给予底层文件系统 IO 删除时间
-            except Exception: pass
+            # 影视补图前再次确认缺失；合集保持原有覆盖逻辑。
+            if only_if_missing:
+                check = session.get(f"{EMBY_URL}/emby/Items/{col_id}/Images", params={"api_key": EMBY_API_KEY}, timeout=10)
+                check.raise_for_status()
+                if any(image.get("ImageType") == "Primary" for image in check.json()):
+                    print(f"    ⏭️ 【{col_name}】已有主封面，跳过修复")
+                    return None
+            else:
+                try:
+                    # 预清理缓存
+                    session.delete(f"{EMBY_URL}/emby/Items/{col_id}/Images/Primary", params={"api_key": EMBY_API_KEY}, timeout=5)
+                    time.sleep(1.0) # 给予底层文件系统 IO 删除时间
+                except Exception: pass
             
             url = f"{EMBY_URL}/emby/Items/{col_id}/Images/Primary"
             # Header 声明是图片，Body 传 Base64
@@ -455,13 +470,20 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
             )
             
             if res.status_code in [200, 204]:
+                if only_if_missing:
+                    check = session.get(f"{EMBY_URL}/emby/Items/{col_id}/Images", params={"api_key": EMBY_API_KEY}, timeout=10)
+                    check.raise_for_status()
+                    if not any(image.get("ImageType") == "Primary" for image in check.json()):
+                        print(f"    ⚠️ 【{col_name}】上传已接收，但未确认主封面，稍后检查")
+                        return False
                 # 刷新 Emby 图片缓存
                 try:
-                    session.post(
-                        f"{EMBY_URL}/emby/Items/{col_id}/Refresh", 
-                        params={"api_key": EMBY_API_KEY, "Recursive": False, "ImageRefreshMode": "FullRefresh"}, 
-                        timeout=5
-                    )
+                    if not only_if_missing:
+                        session.post(
+                            f"{EMBY_URL}/emby/Items/{col_id}/Refresh",
+                            params={"api_key": EMBY_API_KEY, "Recursive": False, "ImageRefreshMode": "FullRefresh"},
+                            timeout=5
+                        )
                 except Exception: pass
                 
                 print(f"    🖼️ 已成功为【{col_name}】注入原语言精美海报！")
@@ -471,8 +493,33 @@ def upload_poster_to_emby(col_id, poster_path, col_name):
                 return False
                 
     except Exception as e:
-        print(f"    ⚠️ 海报注入异常: {e}")
+        print(f"    ⚠️ 海报注入异常: {type(e).__name__}")
     return False
+
+def fix_missing_media_posters(items):
+    """复用全库索引，只为缺少主封面的电影和剧集安排原语言海报。"""
+    missing = [item for item in items if item.get("Type") in ("Movie", "Series")
+               and not (item.get("ImageTags") or {}).get("Primary")]
+    for item_type, label in (("Movie", "电影"), ("Series", "剧集")):
+        print(f"  [扫描] 无主封面{label}: {sum(item.get('Type') == item_type for item in missing)} 部")
+    for item in missing:
+        item_type = item["Type"]
+        label = "电影" if item_type == "Movie" else "剧集"
+        year = item.get("ProductionYear") or (item.get("PremiereDate") or "")[:4]
+        name = f"{label}：{item['Name']}" + (f" ({year})" if year else "")
+        tmdb_id = (item.get("ProviderIds") or {}).get("Tmdb")
+        if not tmdb_id:
+            print(f"  [跳过] {name}，缺少 TMDb ID")
+            sync_stats["poster_failed"].append(f"{name}（缺少 TMDb ID）")
+            continue
+        poster_path = get_original_poster(tmdb_id, "movie" if item_type == "Movie" else "tv", strict_original=True)
+        if not poster_path:
+            print(f"  [跳过] {name}，未获取到原语言海报，请检查 TMDb 图片或网络")
+            sync_stats["poster_failed"].append(f"{name}（未获取到原语言海报）")
+            continue
+        print(f"  [待修复] {name}")
+        sync_stats["pending_posters"].append({"id": item["Id"], "path": poster_path,
+                                            "name": name, "media_type": item_type})
 
 def fix_missing_collection_posters():
     """扫描所有合集，如果没有封面，取合集内最早上映的影视海报进行修复 (自动排除脚本管理的榜单)"""
@@ -482,7 +529,7 @@ def fix_missing_collection_posters():
                     [lst["name"] for lst in DOUBAN_TV_LISTS] + \
                     ["国产电影", "国产电视剧"]
     
-    print("\n" + "="*45 + "\n🖼️ 阶段四：全局无封面合集修复 (自动排除榜单)\n" + "="*45)
+    print("\n" + "="*45 + "\n🖼️ 阶段四：合集与影视无封面修复 (合集自动排除榜单)\n" + "="*45)
     try:
         collections = session.get(f"{EMBY_URL}/emby/Items", params={
             "api_key": EMBY_API_KEY, "IncludeItemTypes": "BoxSet", "Recursive": True, "Fields": "ImageTags"
@@ -1026,8 +1073,9 @@ def process():
     update_collection_by_name("国产电影", [m["Id"] for m in dom_movies], "", dom_movie_poster)
     sync_stats["movies"] = len(dom_movies)
 
-    # --- 阶段四：全局扫描修复无封面合集 ---
+    # --- 阶段四：全局扫描修复无封面合集、电影和剧集 ---
     fix_missing_collection_posters()
+    fix_missing_media_posters(all_movies + all_series)
 
     # --- 阶段五：统一处理海报注入与缓存刷新 ---
     list_poster_count = 0
@@ -1037,8 +1085,12 @@ def process():
         time.sleep(5)
         
         for p in sync_stats["pending_posters"]:
-            poster_injected = upload_poster_to_emby(p["id"], p["path"], p["name"])
-            if poster_injected and p.get("is_fixed_cover"):
+            poster_injected = upload_poster_to_emby(p["id"], p["path"], p["name"], only_if_missing=bool(p.get("media_type")))
+            if p.get("media_type") and poster_injected is None:
+                continue
+            if poster_injected and p.get("media_type"):
+                sync_stats["fixed_media_covers"][p["media_type"]].append(p["name"])
+            elif poster_injected and p.get("is_fixed_cover"):
                 sync_stats["fixed_covers"] += 1
                 sync_stats["fixed_cover_names"].append(p["name"])
             elif poster_injected:
@@ -1118,6 +1170,12 @@ def process():
             report.append("  - 本次无订阅变动")
     else: report.append("🍿 MoviePilot 自动订阅未开启")
 
+    media_cover_status = [f"{label} {len(sync_stats['fixed_media_covers'][item_type])} 部"
+                          for item_type, label in (("Movie", "电影"), ("Series", "剧集"))
+                          if sync_stats["fixed_media_covers"][item_type]]
+    if media_cover_status:
+        report.append(f"🛠️ 影视无封面修复: {'，'.join(media_cover_status)}")
+
     report.extend([
         f"⭐ 同步全员收藏人次: {sync_stats['favs']}",
         f"🖼️ 榜单合集海报注入: {list_poster_count} 个",
@@ -1153,9 +1211,10 @@ def process():
             report.append(f"  • ... 等共 {len(sync_stats['poster_failed'])} 个")
 
     # 追加无封面合集修复清单
-    if sync_stats["fixed_cover_names"]:
-        report.append("\n🛠️ 【无封面合集修复清单】:")
-        for f in sync_stats["fixed_cover_names"]:
+    fixed_cover_names = sync_stats["fixed_cover_names"] + sync_stats["fixed_media_covers"]["Movie"] + sync_stats["fixed_media_covers"]["Series"]
+    if fixed_cover_names:
+        report.append("\n🛠️ 【无封面修复清单】:")
+        for f in fixed_cover_names:
             report.append(f"  • {f}")
 
     # 在触发真实发送前，将最终要推出去的极简消息在控制台打印预览一下

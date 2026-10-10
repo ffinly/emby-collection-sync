@@ -112,13 +112,15 @@
   * **告别四宫格假死**：彻底终结 Emby 默认生成拼图时导致的服务器卡死或刮削阻塞问题。
   * **异步队列注入**：引入全局任务队列与动态延时结算机制，将海报注入与合集创建解耦，大幅缩短运行时间并完美规避 SQLite 数据库锁死覆盖问题。
   * **智能抓取策略**：支持高度自定义的海报提取逻辑（榜单绝对第一 vs 库内拥有最高排名；最新上映 vs 最新入库），打造个性化封面墙。
-  * **无封面自动修复**：自动扫描库内无封面的合集，智能提取合集内“最早上映”影片的海报进行兜底修复。
+  * **合集封面修复**：扫描库内无封面的合集，提取合集内最早上映影视的海报进行修复。
+  * **电影与剧集封面修复**：为缺少主封面的电影和剧集补充 TMDb 原语言海报。已有主封面自动跳过；缺少 TMDb ID 或未获取到原语言海报时记录原因，不使用其他语言图片替代。
 * **🍿 MoviePilot 联动自动补片**
   * **精准订阅策略**：比对缺失后自动调用 MoviePilot API。**支持按榜单独立配置订阅模式：全量订阅 (True)、完全关闭 (False) 或设置排名阈值（如传入整数 3，则仅自动订阅榜单前 3 名的缺失项），精细化管理资源获取。**
   * **防误杀排除列表**：支持配置独立的电影/剧集 TMDb ID 排除列表 (`MP_EXCLUDE_MOVIE_IDS` / `MP_EXCLUDE_SERIES_IDS`)，智能跳过无需订阅的特定条目，并在推送报告中体现拦截统计。
   * **防重机制**：推送前自动比对 MP 已有订阅，避免重复下发任务。
 * **📁 智能查漏补缺与报告**
   * 详细的推送通知报告：精确列出缺失影片、排名及对应的 `{tmdb-id}`，并动态展示 MP 订阅成功、已有及排除的数量。
+  * **封面修复报告**：分别统计合集、电影和剧集的修复数量，并统一展示成功修复清单及失败原因。
   * **自适应通知排版**：针对分类榜单采用精简概览模式，防止消息过长被通讯软件截断。
 * **🇨🇳 国产/华语特色聚合**
   * 通过目录关键词与 TMDb 产地代码（`CN/HK/TW`）自动聚合国产影视资源。
@@ -253,13 +255,15 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
   * **Eliminate UI Freezes**: Prevents Emby server crashes or scraping bottlenecks caused by generating default 4-grid collage thumbnails.
   * **Async Queue Injection**: Introduces a global task queue with dynamic delayed batch processing. Decouples collection creation from poster injection to significantly reduce execution time and prevent SQLite database locks/overwrites.
   * **Smart Fetching Strategies**: Highly customizable poster extraction logic (absolute list top vs. highest-ranked in local library; newest premiere vs. latest added) for a personalized poster wall.
-  * **Auto-Repair Missing Covers**: Scans the library for coverless collections and intelligently extracts the poster of the "earliest released" movie as a fallback.
+  * **Collection Cover Repair**: Repairs coverless collections using a poster from the earliest released media item in the collection.
+  * **Movie & TV Cover Repair**: Adds TMDb original-language posters to movies and TV shows missing a primary image. Existing covers are skipped. Missing TMDb IDs or unavailable original-language posters are reported without substituting another language.
 * **🍿 MoviePilot Integration**
   * **Smart Subscription Policies**: Automatically triggers MoviePilot API to subscribe to missing media. **Supports flexible policies: toggle per list (True/False) or set a rank threshold (Integer, e.g., 3, to only subscribe to the top 3 missing items), providing precise control over resource acquisition.**
   * **Custom Exclusion Lists**: Configure separate movie and series exclusion lists (`MP_EXCLUDE_MOVIE_IDS` / `MP_EXCLUDE_SERIES_IDS`) to skip specific media from auto-downloading, with intercepted counts displayed in the final report.
   * **Anti-Duplication**: Cross-checks existing MP subscriptions before pushing requests to avoid duplicate entries.
 * **📁 Gap Analysis & Reporting**
   * Precise push notifications detailing missing items, their rankings, `{tmdb-id}`, and dynamic stats for successful, existing, and excluded MP subscriptions.
+  * **Cover Repair Report**: Reports collection, movie and TV repair counts separately, with a combined list of successful repairs and reasons for failures.
   * **Adaptive Formatting**: Uses a concise overview mode for genre lists to prevent notifications from being truncated by messaging apps.
 * **🇨🇳 Regional Media Aggregation**
   * Automatically groups Chinese-language media based on directory keywords and TMDb origin country codes (`CN/HK/TW`).
