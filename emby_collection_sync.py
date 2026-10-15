@@ -122,7 +122,11 @@ CUSTOM_LISTS = [
     {"name": "豆瓣 - 华语口碑剧集榜", "id": "8648548", "type": "Series", "mp_subscribe": False, "notify_missing": True},
     {"name": "豆瓣 - 全球口碑剧集榜", "id": "8648549", "type": "Series", "mp_subscribe": False, "notify_missing": True},
     {"name": "豆瓣 - 实时热门电影榜", "id": "8648550", "type": "Movie", "mp_subscribe": 3, "notify_missing": True},
-    {"name": "豆瓣 - 实时热门电视榜", "id": "8648551", "type": "Series", "mp_subscribe": False, "notify_missing": True}
+    {"name": "豆瓣 - 实时热门电视榜", "id": "8648551", "type": "Series", "mp_subscribe": False, "notify_missing": True},
+    {"name": "TMDB - 热门电影榜", "id": "8706223", "type": "Movie", "mp_subscribe": False, "notify_missing": True},
+    {"name": "TMDB - 热门剧集榜", "id": "8706224", "type": "Series", "mp_subscribe": False, "notify_missing": True},
+    {"name": "TMDB - 本周趋势电影榜", "id": "8706225", "type": "Movie", "mp_subscribe": False, "notify_missing": True},
+    {"name": "TMDB - 本周趋势剧集榜", "id": "8706226", "type": "Series", "mp_subscribe": False, "notify_missing": True}
 ]
 
 # 与 README 的核心榜单图标保持一致，按 TMDb 列表 ID 匹配，避免改名影响通知。
@@ -138,7 +142,8 @@ LIST_EMOJIS = {
     "8649029": "📖", "8649108": "💽", "8649217": "✨",
     "8649218": "🔴", "8649220": "🎞️", "8648547": "📈",
     "8648548": "📺", "8648549": "🌍", "8648550": "🔥",
-    "8648551": "🔥",
+    "8648551": "🔥", "8706223": "📈", "8706224": "📺",
+    "8706225": "🔥", "8706226": "🔥",
 }
 # === 历史遗留合集名称映射 (用于清理旧名称) ===
 # 格式: {"新名称": ["旧名称1", "旧名称2"]}

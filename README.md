@@ -57,6 +57,10 @@
 * 🌍 **豆瓣 - 全球口碑剧集榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648549?view=grid)
 * 🔥 **豆瓣 - 实时热门电影榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648550?view=grid)
 * 🔥 **豆瓣 - 实时热门电视榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648551?view=grid)
+* 📈 **TMDB - 热门电影榜**: [查看网格墙视图](https://www.themoviedb.org/list/8706223?view=grid)
+* 📺 **TMDB - 热门剧集榜**: [查看网格墙视图](https://www.themoviedb.org/list/8706224?view=grid)
+* 🔥 **TMDB - 本周趋势电影榜**: [查看网格墙视图](https://www.themoviedb.org/list/8706225?view=grid)
+* 🔥 **TMDB - 本周趋势剧集榜**: [查看网格墙视图](https://www.themoviedb.org/list/8706226?view=grid)
 
 #### 📂 豆瓣电影 28 大分类多维度榜单
 
@@ -200,6 +204,10 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🌍 **Douban - Highly Rated Global Series**: [View Grid](https://www.themoviedb.org/list/8648549?view=grid)
 * 🔥 **Douban - Real-time Hot Movies**: [View Grid](https://www.themoviedb.org/list/8648550?view=grid)
 * 🔥 **Douban - Real-time Hot TV Shows**: [View Grid](https://www.themoviedb.org/list/8648551?view=grid)
+* 📈 **TMDB - Popular Movies**: [View Grid](https://www.themoviedb.org/list/8706223?view=grid)
+* 📺 **TMDB - Popular TV Shows**: [View Grid](https://www.themoviedb.org/list/8706224?view=grid)
+* 🔥 **TMDB - Trending Movies This Week**: [View Grid](https://www.themoviedb.org/list/8706225?view=grid)
+* 🔥 **TMDB - Trending TV Shows This Week**: [View Grid](https://www.themoviedb.org/list/8706226?view=grid)
 
 #### 📂 Douban 28 Movie Genre Lists
 
