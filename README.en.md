@@ -6,7 +6,15 @@
 
 🚀 **A fully automated collection management and media acquisition pipeline for Emby.**
 
-Seamlessly synchronize authoritative lists like IMDb/Douban Top 250/Letterboxd/TSPDT, **9 Global Prestigious Film Awards**, and Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists. It intelligently scans your local library for missing media, and **supports custom exclusion lists to seamlessly integrate with MoviePilot for automated downloading**. The system auto-aggregates Chinese-language media and **natively injects original-language posters using smart fetching strategies and an async queue engine to permanently resolve Emby's performance bottlenecks (UI freezes) caused by default collage generation.** Realize a complete closed-loop from automated library management to immersive viewing.
+Seamlessly synchronize authoritative lists like IMDb/Douban Top 250/Letterboxd/TSPDT, **9 Major Film Awards Worldwide**, and Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists. It intelligently scans your local library for missing media, and **supports custom exclusion lists to seamlessly integrate with MoviePilot for automated downloading**. The system auto-aggregates Chinese-language media and **natively injects original-language posters using smart fetching strategies and an async queue engine to permanently resolve Emby's performance bottlenecks (UI freezes) caused by default collage generation.** Realize a complete closed-loop from automated library management to immersive viewing.
+
+## 🎬 Use with Emby Companion
+
+For a visual way to explore these lists on your Mac and check Emby availability and missing episodes, try [Emby Companion](https://github.com/ffinly/emby-companion). Browse lists and Emby collections, choose what to watch, launch an external player, and optionally subscribe to missing content manually through MoviePilot.
+
+This project automates Emby collection management and, when configured, MoviePilot subscriptions on the server side. Emby Companion provides the Mac browsing and playback interface, creating a **lists → Emby collections → discover and play on Mac** workflow.
+
+Both projects can be used independently; neither requires deploying the other.
 
 ## 🔗 Publicly Maintained TMDb Lists
 
@@ -114,7 +122,7 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 ## ✨ Core Features
 
 * **🏆 Automated Top List Maintenance**
-  * Supports IMDb/Douban Top 250/Letterboxd/TSPDT Lists, **9 Global Prestigious Film Awards**, and **Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists**.
+  * Supports IMDb/Douban Top 250/Letterboxd/TSPDT Lists, **9 Major Film Awards Worldwide**, and **Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists**.
   * **Metadata Sync**: Fetches TMDb list descriptions and writes them to the Emby Collection `Overview`.
   * **Global Favorites**: Automatically adds generated collections to "My Favorites" for all Emby users, boosting visibility.
 * **🖼️ Poster Injection & Async Performance Engine**
