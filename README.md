@@ -28,6 +28,7 @@
 * 🏛️ **S&S Directors - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649058?view=grid)
 * 🏛️ **S&S Critics - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649050?view=grid)
 * ⭐ **AFI Top 100 (2007)**: [查看网格墙视图](https://www.themoviedb.org/list/8649041?view=grid)
+* 🎓 **Harvard Film PhD Program**: [查看网格墙视图](https://www.themoviedb.org/list/8714340?view=grid)
 * 📰 **NYT - 100 Best Movies of the 21st Century (2025)**: [查看网格墙视图](https://www.themoviedb.org/list/8701141?view=grid)
 * 📡 **NYT - 100 Best TV Shows of the 21st Century (2026)**: [查看网格墙视图](https://www.themoviedb.org/list/8701142?view=grid)
 
@@ -47,8 +48,21 @@
 
 * 🎬 **LB Top 500 Films**: [查看网格墙视图](https://www.themoviedb.org/list/8648802?view=grid)
 * 🔥 **LB Top 250 Films with the Most Fans**: [查看网格墙视图](https://www.themoviedb.org/list/8649224?view=grid)
+* 💥 **LB Top 250 Action Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714314?view=grid)
 * 🎨 **LB Top 250 Animated Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649225?view=grid)
+* 📖 **LB Top 250 Biographical Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714315?view=grid)
+* 🚔 **LB Top 250 Crime Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714316?view=grid)
 * 📽️ **LB Top 250 Documentary Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649231?view=grid)
+* 🌑 **LB Top 100 Film Noir Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714317?view=grid)
+* 👻 **LB Top 250 Horror Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714318?view=grid)
+* 🧙 **LB Top 100 Live-Action Fantasy Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714319?view=grid)
+* 💃 **LB Top 250 Musical Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714320?view=grid)
+* 🔍 **LB Top 250 Mystery Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714322?view=grid)
+* 💕 **LB Top 250 Romantic Comedy Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714328?view=grid)
+* 🚀 **LB Top 250 Science Fiction Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714330?view=grid)
+* 🏃 **LB Top 100 Sports Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714333?view=grid)
+* ⚔️ **LB Top 250 War Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714334?view=grid)
+* 🤠 **LB Top 100 Western Films**: [查看网格墙视图](https://www.themoviedb.org/list/8714335?view=grid)
 * 📝 **Roger Ebert's Great Movies**: [查看网格墙视图](https://www.themoviedb.org/list/8649219?view=grid)
 
 ### 📚 第五梯队：超大体量洗版底仓
@@ -61,7 +75,7 @@
 
 * ✨ **Every A24 Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649217?view=grid)
 * 🔴 **Every NEON Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649218?view=grid)
-* 🎞️ **Every MUBI Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649220?view=grid)
+* 🎟️ **Every MUBI Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649220?view=grid)
 
 ### 📈 第七梯队：实时口碑与趋势榜 (Trending & Popular)
 
@@ -101,7 +115,7 @@
 * 🧙 **奇幻**: [Top 20](https://www.themoviedb.org/list/8647703?view=grid) | [高分经典](https://www.themoviedb.org/list/8648580?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648606?view=grid)
 * 🗺️ **冒险**: [近期热门](https://www.themoviedb.org/list/8648561?view=grid) | [Top 20](https://www.themoviedb.org/list/8647704?view=grid) | [高分经典](https://www.themoviedb.org/list/8648575?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648603?view=grid)
 * 🌋 **灾难**: [Top 20](https://www.themoviedb.org/list/8647705?view=grid) | [高分经典](https://www.themoviedb.org/list/8648587?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648613?view=grid)
-* 🗡️ **武侠**: [Top 20](https://www.themoviedb.org/list/8647706?view=grid) | [高分经典](https://www.themoviedb.org/list/8648585?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648611?view=grid)
+* 🥋 **武侠**: [Top 20](https://www.themoviedb.org/list/8647706?view=grid) | [高分经典](https://www.themoviedb.org/list/8648585?view=grid) | [冷门佳作](https://www.themoviedb.org/list/8648611?view=grid)
 * 🏮 **古装**: [Top 20](https://www.themoviedb.org/list/8647707?view=grid) | [高分经典](https://www.themoviedb.org/list/8648593?view=grid)
 * 🏃 **运动**: [Top 20](https://www.themoviedb.org/list/8647708?view=grid) | [高分经典](https://www.themoviedb.org/list/8648594?view=grid)
 * 🌑 **黑色电影**: [Top 20](https://www.themoviedb.org/list/8647709?view=grid)

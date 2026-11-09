@@ -86,6 +86,7 @@ CUSTOM_LISTS = [
     {"name": "S&S Directors - Greatest Films", "id": "8649058", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "S&S Critics - Greatest Films", "id": "8649050", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "AFI Top 100 (2007)", "id": "8649041", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "Harvard Film PhD Program", "id": "8714340", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "NYT - 100 Best Movies of the 21st Century (2025)", "id": "8701141", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "NYT - 100 Best TV Shows of the 21st Century (2026)", "id": "8701142", "type": "Series", "mp_subscribe": False, "notify_missing": False},
 
@@ -103,8 +104,21 @@ CUSTOM_LISTS = [
     # === 第四梯队：高阶影迷社区与名家策展（品味过滤，兼顾极客探索与优质亲子动画） ===
     {"name": "LB Top 500 Films", "id": "8648802", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "LB Top 250 Films with the Most Fans", "id": "8649224", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Action Films", "id": "8714314", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "LB Top 250 Animated Films", "id": "8649225", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Biographical Films", "id": "8714315", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Crime Films", "id": "8714316", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "LB Top 250 Documentary Films", "id": "8649231", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 100 Film Noir Films", "id": "8714317", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Horror Films", "id": "8714318", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 100 Live-Action Fantasy Films", "id": "8714319", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Musical Films", "id": "8714320", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Mystery Films", "id": "8714322", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Romantic Comedy Films", "id": "8714328", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 Science Fiction Films", "id": "8714330", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 100 Sports Films", "id": "8714333", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 250 War Films", "id": "8714334", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
+    {"name": "LB Top 100 Western Films", "id": "8714335", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     {"name": "Roger Ebert's Great Movies", "id": "8649219", "type": "Movie", "mp_subscribe": False, "notify_missing": False},
     
     # === 第五梯队：超大体量洗版底仓（千部级别，影音极客的镇库之宝与终极洗版收藏目标） ===
@@ -140,10 +154,15 @@ LIST_EMOJIS = {
     "8648802": "🎬", "8649224": "🔥", "8649225": "🎨",
     "8649231": "📽️", "8649219": "📝", "8648821": "🎥",
     "8649029": "📖", "8649108": "💽", "8649217": "✨",
-    "8649218": "🔴", "8649220": "🎞️", "8648547": "📈",
+    "8649218": "🔴", "8649220": "🎟️", "8648547": "📈",
     "8648548": "📺", "8648549": "🌍", "8648550": "🔥",
     "8648551": "🔥", "8706223": "📈", "8706224": "📺",
     "8706225": "🔥", "8706226": "🔥",
+    "8714314": "💥", "8714315": "📖", "8714316": "🚔",
+    "8714317": "🌑", "8714318": "👻", "8714319": "🧙",
+    "8714320": "💃", "8714322": "🔍", "8714328": "💕",
+    "8714330": "🚀", "8714333": "🏃", "8714334": "⚔️",
+    "8714335": "🤠", "8714340": "🎓",
 }
 # === 历史遗留合集名称映射 (用于清理旧名称) ===
 # 格式: {"新名称": ["旧名称1", "旧名称2"]}
@@ -1108,6 +1127,7 @@ def process():
     report = ["📊 Emby 智能合集整理汇总", "━━━━━━━━━━━━━━"]
     genre_matched = 0
     tv_genre_matched = 0
+    lb_genre_matched = 0
     genre_missing_summary = []
     
     for list_name, data in reversed(list(sync_stats["lists_report"].items())):
@@ -1121,6 +1141,12 @@ def process():
                 # 智能截取名字，防止概览通知过长，比如把 "豆瓣电影 - 剧情 - Top 20" 变成 "剧情"
                 short_name = list_name.replace("豆瓣电影 - ", "").replace(" - Top 20", "")
                 genre_missing_summary.append(f"{short_name}(缺{len(data['missing'])})")
+        elif (
+            list_name.startswith(("LB Top 100 ", "LB Top 250 "))
+            and list_name.endswith(" Films")
+        ):
+            if data["matched"] >= 2:
+                lb_genre_matched += 1
         else:
             # 优先使用 README 对应的榜单图标，自定义榜单保留类型图标。
             icon = LIST_EMOJIS.get(str(data.get("id")), "📺" if data.get("type") == "Series" else "🎬")
@@ -1133,7 +1159,8 @@ def process():
             report.append(f"{icon} {list_name}: {data['matched']}/{data['total']} {missing_text}")
         
     report.extend([
-        f"", f"📂 豆瓣电影分类同步: 达标生成 {genre_matched} 个合集",
+        f"", f"🎬 Letterboxd 类型片单同步: 达标生成 {lb_genre_matched} 个合集",
+        f"📂 豆瓣电影分类同步: 达标生成 {genre_matched} 个合集",
         f"📺 豆瓣电视剧分类同步: 达标生成 {tv_genre_matched} 个合集", f"🇨🇳 国产影视整理",
         f"  - 国产电影: {sync_stats['movies']} 部", f"  - 国产剧集: {sync_stats['series']} 部", f""
     ])

@@ -28,6 +28,7 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🏛️ **S&S Directors - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649058?view=grid)
 * 🏛️ **S&S Critics - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649050?view=grid)
 * ⭐ **AFI Top 100 (2007)**: [View Grid](https://www.themoviedb.org/list/8649041?view=grid)
+* 🎓 **Harvard Film PhD Program**: [View Grid](https://www.themoviedb.org/list/8714340?view=grid)
 * 📰 **NYT - 100 Best Movies of the 21st Century (2025)**: [View Grid](https://www.themoviedb.org/list/8701141?view=grid)
 * 📡 **NYT - 100 Best TV Shows of the 21st Century (2026)**: [View Grid](https://www.themoviedb.org/list/8701142?view=grid)
 
@@ -47,8 +48,21 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 
 * 🎬 **LB Top 500 Films**: [View Grid](https://www.themoviedb.org/list/8648802?view=grid)
 * 🔥 **LB Top 250 Films with the Most Fans**: [View Grid](https://www.themoviedb.org/list/8649224?view=grid)
+* 💥 **LB Top 250 Action Films**: [View Grid](https://www.themoviedb.org/list/8714314?view=grid)
 * 🎨 **LB Top 250 Animated Films**: [View Grid](https://www.themoviedb.org/list/8649225?view=grid)
+* 📖 **LB Top 250 Biographical Films**: [View Grid](https://www.themoviedb.org/list/8714315?view=grid)
+* 🚔 **LB Top 250 Crime Films**: [View Grid](https://www.themoviedb.org/list/8714316?view=grid)
 * 📽️ **LB Top 250 Documentary Films**: [View Grid](https://www.themoviedb.org/list/8649231?view=grid)
+* 🌑 **LB Top 100 Film Noir Films**: [View Grid](https://www.themoviedb.org/list/8714317?view=grid)
+* 👻 **LB Top 250 Horror Films**: [View Grid](https://www.themoviedb.org/list/8714318?view=grid)
+* 🧙 **LB Top 100 Live-Action Fantasy Films**: [View Grid](https://www.themoviedb.org/list/8714319?view=grid)
+* 💃 **LB Top 250 Musical Films**: [View Grid](https://www.themoviedb.org/list/8714320?view=grid)
+* 🔍 **LB Top 250 Mystery Films**: [View Grid](https://www.themoviedb.org/list/8714322?view=grid)
+* 💕 **LB Top 250 Romantic Comedy Films**: [View Grid](https://www.themoviedb.org/list/8714328?view=grid)
+* 🚀 **LB Top 250 Science Fiction Films**: [View Grid](https://www.themoviedb.org/list/8714330?view=grid)
+* 🏃 **LB Top 100 Sports Films**: [View Grid](https://www.themoviedb.org/list/8714333?view=grid)
+* ⚔️ **LB Top 250 War Films**: [View Grid](https://www.themoviedb.org/list/8714334?view=grid)
+* 🤠 **LB Top 100 Western Films**: [View Grid](https://www.themoviedb.org/list/8714335?view=grid)
 * 📝 **Roger Ebert's Great Movies**: [View Grid](https://www.themoviedb.org/list/8649219?view=grid)
 
 ### 📚 Tier 5: Ultimate Collection Targets (1000+ Films)
@@ -61,7 +75,7 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 
 * ✨ **Every A24 Film**: [View Grid](https://www.themoviedb.org/list/8649217?view=grid)
 * 🔴 **Every NEON Film**: [View Grid](https://www.themoviedb.org/list/8649218?view=grid)
-* 🎞️ **Every MUBI Film**: [View Grid](https://www.themoviedb.org/list/8649220?view=grid)
+* 🎟️ **Every MUBI Film**: [View Grid](https://www.themoviedb.org/list/8649220?view=grid)
 
 ### 📈 Tier 7: Trending & Popular
 
@@ -101,7 +115,7 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🧙 **Fantasy**: [Top 20](https://www.themoviedb.org/list/8647703?view=grid) | [Classics](https://www.themoviedb.org/list/8648580?view=grid) | [Niche](https://www.themoviedb.org/list/8648606?view=grid)
 * 🗺️ **Adventure**: [Trending](https://www.themoviedb.org/list/8648561?view=grid) | [Top 20](https://www.themoviedb.org/list/8647704?view=grid) | [Classics](https://www.themoviedb.org/list/8648575?view=grid) | [Niche](https://www.themoviedb.org/list/8648603?view=grid)
 * 🌋 **Disaster**: [Top 20](https://www.themoviedb.org/list/8647705?view=grid) | [Classics](https://www.themoviedb.org/list/8648587?view=grid) | [Niche](https://www.themoviedb.org/list/8648613?view=grid)
-* 🗡️ **Wuxia**: [Top 20](https://www.themoviedb.org/list/8647706?view=grid) | [Classics](https://www.themoviedb.org/list/8648585?view=grid) | [Niche](https://www.themoviedb.org/list/8648611?view=grid)
+* 🥋 **Wuxia**: [Top 20](https://www.themoviedb.org/list/8647706?view=grid) | [Classics](https://www.themoviedb.org/list/8648585?view=grid) | [Niche](https://www.themoviedb.org/list/8648611?view=grid)
 * 🏮 **Period & Costume**: [Top 20](https://www.themoviedb.org/list/8647707?view=grid) | [Classics](https://www.themoviedb.org/list/8648593?view=grid)
 * 🏃 **Sports**: [Top 20](https://www.themoviedb.org/list/8647708?view=grid) | [Classics](https://www.themoviedb.org/list/8648594?view=grid)
 * 🌑 **Film Noir**: [Top 20](https://www.themoviedb.org/list/8647709?view=grid)
