@@ -2,29 +2,175 @@
 
 [简体中文](README.md) | [繁體中文](README.zh-TW.md) | **English**
 
----
-
-🚀 **A fully automated collection management and media acquisition pipeline for Emby.**
-
-Seamlessly synchronize authoritative lists like IMDb/Douban Top 250/Letterboxd/TSPDT, **9 Major Film Awards Worldwide**, and Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists. It intelligently scans your local library for missing media, and **supports custom exclusion lists to seamlessly integrate with MoviePilot for automated downloading**. The system auto-aggregates Chinese-language media and **natively injects original-language posters using smart fetching strategies and an async queue engine to permanently resolve Emby's performance bottlenecks (UI freezes) caused by default collage generation.** Realize a complete closed-loop from automated library management to immersive viewing.
+Synchronize TMDb lists into Emby collections, report missing titles, optionally subscribe through MoviePilot, organize media by country, and upload original-language posters. Runs in Qinglong or directly with Python.
 
 ## 🎬 Use with Emby Companion
 
-For a visual way to explore these lists on your Mac and check Emby availability and missing episodes, try [Emby Companion](https://github.com/ffinly/emby-companion). Browse lists and Emby collections, choose what to watch, launch an external player, and optionally subscribe to missing content manually through MoviePilot.
+[Emby Companion](https://github.com/ffinly/emby-companion) is a macOS viewing companion for discovering titles through curated lists, checking library availability and missing episodes, submitting subscriptions manually, and watching with a local player. The app uses this project’s preset lists, while the script maintains collections on your Emby server on a schedule. They can be used independently or together.
 
-This project automates Emby collection management and, when configured, MoviePilot subscriptions on the server side. Emby Companion provides the Mac browsing and playback interface, creating a **lists → Emby collections → discover and play on Mac** workflow.
+## ✨ Core Features
 
-Both projects can be used independently; neither requires deploying the other.
+- **🏆 Automated list sync**: 157 bundled IMDb, Douban, Letterboxd, TMDb, and other lists, plus custom TMDb lists, descriptions, and missing-title reports.
+- **📌 Daily rebuild ordering**: preserve creation order so new collections appear ahead of older collections when Emby sorts by date added, descending. Complete and verify replacements before deleting old collections.
+- **🌏 Country collections**: `CN` groups mainland China, Hong Kong, Taiwan, and Macao by default. Add other codes as needed; omitting `CN` skips Chinese collections, and an empty list disables country collections.
+- **🌐 One script, three languages**: deploy only `emby_collection_sync.py`, with common settings at the top and built-in Simplified Chinese, Traditional Chinese, and English logs, notifications, and list names.
+- **⭐ Favorite exclusions by username**: automatic favorites are enabled by default, with exact Emby username exclusions and a global switch.
+- **🍿 MoviePilot subscriptions**: all missing titles, top N only, or report-only policies; separate movie/TV exclusions and season-specific TV checks.
+- **🖼️ Posters and reports**: original-language posters, missing-image repairs, missing-title details, and subscription/repair totals, with caching, pagination validation, connection checks, and credential redaction.
+
+## 📸 Showcase
+
+![Emby collection showcase](assets/images/showcase.png)
+
+*Emby collection poster wall and categories.*
+
+## 🚀 Quick Start (via Qinglong Panel)
+
+Requires **Python 3.9+**, an accessible Emby server, and a TMDb API key. MoviePilot is optional.
+
+1. Place [emby_collection_sync.py](emby_collection_sync.py) under Qinglong's `scripts`. No separate Python configuration file is required.
+2. Install `requests` and `urllib3` under Qinglong's Python3 dependencies.
+3. Add `EMBY_URL`, `EMBY_API_KEY`, and `TMDB_API_KEY` as environment variables. See [Connections](#connections-environment-variables-by-default) for values and optional settings.
+4. Edit language, country codes, favorite exclusions, and other settings at the top of the script, plus the list subscription policies below. The synchronization logic needs no edits.
+5. Run `task emby_collection_sync.py` to synchronize collections and apply configured favorites, subscriptions, and notifications.
+6. Schedule once daily. Standard five-field cron: `30 8 * * *` (08:30). For a panel expecting a leading seconds field, use `0 30 8 * * *`. The scheduler's configured timezone applies.
+
+Notifications use Qinglong's `notify.send`. Without that module, the report prints to the console; do not install an unrelated package named `notify`.
+
+### Script structure and translations
+
+| Script section | Contents |
+| --- | --- |
+| Common settings at the top | Language, countries, favorite exclusions, connections, proxy, and poster policies |
+| List settings | Core lists, Douban categories, historical names, and icons |
+| Translation data | List names, log and notification messages, and country/region names |
+| Synchronization logic | API calls, daily rebuilds, subscriptions, favorites, and notifications |
+
+Common settings appear first, followed by lists, translations, and synchronization logic. `LIST_NAMES` maps list IDs to `zh-CN`, `zh-TW`, and `en` names. `MESSAGES` maps English message keys to `zh-CN`, `zh-TW`, and `en` translations. `COUNTRY_LABELS` holds country/region names in all three languages, `COUNTRY_ALIASES` adds alternate names, and `COUNTRY_LEGACY_LABELS` preserves previous translations for collection renaming. Preserve placeholders such as `{name}` when editing messages. To switch language, change only `LANGUAGE`.
+
+The introduction and configuration comments include all three languages. Synchronization code and comments use English; displayed messages come from the built-in translation tables.
+
+Schedule only `emby_collection_sync.py`. Before updating the script, back up and merge your own settings and list policies.
+
+### Common settings at the top of the script
+
+Configuration comments include Simplified Chinese, Traditional Chinese, and English; logs and notifications use only the selected `LANGUAGE`.
+
+```python
+LANGUAGE = "en"                        # zh-CN / zh-TW / en; shipped default: zh-CN
+COUNTRY_CODES = ["CN"]                  # CN groups CN/HK/TW/MO; [] disables country collections
+FAVORITES_ENABLE = True
+FAVORITES_EXCLUDE_USERS = ["kids"]       # exact Emby usernames, case-sensitive
+MP_ENABLE = False                      # requires MP_URL and MP_API_TOKEN when enabled
+USE_PROXY = False                      # requires PROXY_URL when enabled
+EMBY_VERIFY_SSL = True                  # verify Emby HTTPS; False allows self-signed certificates
+MP_VERIFY_SSL = True                    # verify MoviePilot HTTPS; False allows self-signed certificates
+LIST_POSTER_MODE = "library"            # first local match / first list entry
+DOMESTIC_POSTER_MODE = "premiere"       # latest release / latest library addition
+POSTER_SIZE = "w780"                    # w780 / original
+COUNTRY_CACHE_DAYS = 90                 # country-cache lifetime in days; must be positive
+```
+
+`kids` is an example; the shipped exclusion list is empty. Use actual Emby usernames, not IDs. Excluded users receive no automatic favorites, and existing favorites are not explicitly cleared. Rebuilding changes collection IDs; personal favorite states on deleted collections are not migrated. These settings do not control content access; configure child-account permissions in Emby.
+
+`LANGUAGE` controls logs, notifications, bundled list names, and country collection names. TMDb title translations depend on availability. Custom list names and external API error messages remain unchanged.
+
+### Connections (environment variables by default)
+
+Connections read environment variables by default. To supply a literal value, replace the corresponding assignment using the commented example in the script. A literal value takes precedence for that setting; unchanged settings still read the environment:
+
+```python
+MP_URL = os.getenv("MP_URL")
+# MP_URL = "http://192.168.1.10:3000"
+MP_API_TOKEN = os.getenv("MP_API_TOKEN")
+# MP_API_TOKEN = "your-mp-api-token"
+```
+
+The literal examples remain comments and are inactive by default. Emby, TMDb, MoviePilot, proxy, and TMDb v4 token settings all support this pattern. The `EMBY_SYNC_CACHE` environment variable selects the country-cache path.
+
+| Variable | Required when | Description |
+| --- | --- | --- |
+| `EMBY_URL` | Always | Server root, e.g. `http://192.168.1.100:8096`; do not append `/emby` |
+| `EMBY_API_KEY` | Always | Emby API key |
+| `TMDB_API_KEY` | Always | TMDb v3 API key |
+| `MP_URL` | `MP_ENABLE = True` | MoviePilot service URL |
+| `MP_API_TOKEN` | `MP_ENABLE = True` | MoviePilot API token |
+| `PROXY_URL` | `USE_PROXY = True` | HTTP(S) proxy for TMDb API and image requests |
+| `TMDB_ACCESS_TOKEN` | Optional | TMDb API Read Access Token for v4 fallback after a v3 list returns 404; private lists require an authorized user token |
+| `EMBY_SYNC_CACHE` | Optional | Absolute country-cache path; defaults to `.emby_country_cache.json` beside the script |
+
+Configuration is validated before connecting. HTTPS verification is on by default. Disabling Emby or MoviePilot verification never disables verification for TMDb or poster downloads.
+
+### Country collections
+
+- The default `COUNTRY_CODES = ["CN"]` creates Chinese Movies and Chinese TV Shows when `LANGUAGE = "en"`. **In this script, `CN` is a combined group covering mainland China, Hong Kong, Taiwan, and Macao, matching TMDb codes `CN/HK/TW/MO`**, rather than only TMDb's individual `CN` code.
+- Omit `CN` to skip Chinese collections. `["JP", "US"]` creates only Japanese and US movie/TV collections; `[]` disables all country collections while ordinary list synchronization continues. No separate switch is needed.
+- `HK`, `TW`, and `MO` can also be selected individually. If selected alongside `CN`, a title can appear in both the combined and individual collections.
+- All country/region collections use TMDb country codes: movies, including those in the CN group, use `production_countries`; TV shows use `origin_country`. Co-productions may appear in several collections. This classifies production origin, not spoken language.
+- 272 countries/regions have complete offline translations, including historical codes such as `SU` (Soviet Union) and `XC` (Czechoslovakia). `NZ` displays as 新西兰 / 紐西蘭 / New Zealand. Country names require no extra network lookups.
+- Configuration accepts codes and recognized aliases/names: `UK` becomes `GB`, `USA` becomes `US`, and `USSR` becomes `SU`. Leading/trailing spaces and case are ignored; equivalent selections are deduplicated. Codes are recommended. Names resolving to `CN` still select the combined four-region group described above. Unknown selections fail validation before connecting rather than using fuzzy guesses.
+- Previous translations and code-only collection names are retained as migration aliases, so a collection such as `NZ Movies` can be replaced by `New Zealand Movies` without leaving duplicates after a successful rebuild.
+- TMDb country results are cached for 90 days by default, configurable with `COUNTRY_CACHE_DAYS`; valid cached results are reused and refreshed after expiry. A 404 (entry not found) skips only that title’s country classification and clears its old country cache, allowing other titles to continue; it does not modify the movie or TV show in the Emby library. The next run retries the lookup. Timeouts, rate limits, and other lookup failures use historical cache data when available; without it, existing country collections for that media type are preserved. Titles missing a TMDb ID are logged and skipped for country classification.
+
+Removing CN, another country, or a list stops future creation/rebuilding for it; existing collections are not automatically deleted.
+
+### Lists and MoviePilot
+
+`CUSTOM_LISTS`, `DOUBAN_GENRE_LISTS`, and `DOUBAN_TV_LISTS` are editable in `emby_collection_sync.py`. Remove unwanted entries or add your own TMDb lists to the appropriate array. Use the number after `/list/` in the TMDb URL as `id`, not the full URL. The `123456` below is only a format example; replace it with your list ID:
+
+```python
+{"name": "My list", "id": "123456", "type": "Movie",
+ "mp_subscribe": 3, "notify_missing": True}
+```
+
+`type` is `Movie` (default) or `Series`. `mp_subscribe` accepts `True` (all missing titles), `False` (report only), or a positive integer N (only missing titles ranked in the top N; `0` acts like `False`). Actual subscriptions require `MP_ENABLE = True`. `notify_missing` controls missing-title details for core lists; category lists retain compact totals.
+
+Movie and TV exclusion IDs are configured separately through `MP_EXCLUDE_MOVIE_IDS` and `MP_EXCLUDE_SERIES_IDS`; numeric and string IDs both work. TV subscriptions remain season-specific, with season 0 representing specials. Failed duplicate checks stop the affected subscription flow.
+
+## 📌 Daily rebuild and ordering
+
+Execution follows category lists → core lists → country collections. Category lists and core lists are each created in reverse order. Country collections process TV first, then movies, with country codes in reverse configuration order within each media type. Select **date added, descending** in Emby to put this newly created group ahead of older unrelated collections. If another collection is created later, the next run restores the ordering.
+
+A temporary replacement is created, filled, verified, and renamed before the old collection is removed. Creation, membership, or verification failures preserve the old collection. Every successful rebuild creates a new collection ID and generates its poster according to the configured policy.
+
+**Targets are identified by configured and historical names**. Reserve these names for the script: manually created collections with the same names are also synchronization targets. Bundled names in previous languages are recognized when switching language. Do not overlap two runs. Forced interruption can leave a temporary collection containing `[sync-...]` in its name; inspect it before manual cleanup.
+
+Failed or incomplete TMDb lists cause no rebuild or subscriptions from partial data. Empty lists and fewer than two local matches preserve existing list collections. Country collections require at least one local match. Match counts determine whether a collection is rebuilt; they do not disable subscriptions for missing titles in a complete list. Unrelated differently named collections are not rebuilt, but the missing-poster repair step still checks them.
+
+## 🖼️ Posters and reports
+
+List posters use either the first ranked title or first locally available title. Country collections sort by latest release or library addition and use the first title with an available poster. Collection posters prefer the original language, falling back to other available TMDb posters when necessary. Movie and TV missing-image repair requires an original-language poster and leaves existing primary images alone. Queued uploads execute **sequentially** after collection processing, not asynchronously.
+
+The default image size is `w780`; select `original` if desired. Old images are kept until upload. Reports include core-list details, compact category counts, the first three missing titles, subscriptions, and poster statistics, with a failed/skipped collection list. Category counts indicate collections meeting the match threshold, not successful rebuilds; rebuild failures are listed separately.
+
+## 🐍 Run without Qinglong
+
+Download [emby_collection_sync.py](emby_collection_sync.py) and [requirements.txt](requirements.txt) into the same directory. Open a terminal in that directory and run these commands on Linux/macOS:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt
+export EMBY_URL="http://192.168.1.100:8096"
+export EMBY_API_KEY="YOUR_EMBY_KEY"
+export TMDB_API_KEY="YOUR_TMDB_KEY"
+python3 emby_collection_sync.py
+```
+
+Provide the same environment in your scheduler and use the virtual environment's absolute Python path. Credentials and URL authentication information are redacted in script logs.
 
 ## 🔗 Publicly Maintained TMDb Lists
 
 The following TMDb lists are fully maintained by automated crawlers and ETL pipelines. **Data fetching, comparison, and synchronization run daily at 07:30 (UTC+8)** to ensure rankings remain perfectly aligned with official sources.
 
-### 🏆 Tiers 1 & 2: Mainstream Essentials & Cinematic Hall of Fame
+### 🏆 Tier 1: Mainstream Essentials
 
 * 🍿 **IMDb Top 250 Movies**: [View Grid](https://www.themoviedb.org/list/8647021?view=grid)
 * 📺 **IMDb Top 250 TV Shows**: [View Grid](https://www.themoviedb.org/list/8647022?view=grid)
 * 🎞️ **Douban Movies Top 250**: [View Grid](https://www.themoviedb.org/list/8647023?view=grid)
+
+### 🏛️ Tier 2: Cinematic Hall of Fame
+
 * 🏛️ **S&S Directors - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649058?view=grid)
 * 🏛️ **S&S Critics - Greatest Films**: [View Grid](https://www.themoviedb.org/list/8649050?view=grid)
 * ⭐ **AFI Top 100 (2007)**: [View Grid](https://www.themoviedb.org/list/8649041?view=grid)
@@ -36,13 +182,13 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 
 * 🏆 **Oscar Winning Films: Best Picture**: [View Grid](https://www.themoviedb.org/list/8648843?view=grid)
 * 🌿 **Cannes Film Festival Palme d'Or**: [View Grid](https://www.themoviedb.org/list/8648844?view=grid)
+* 🦁 **Venice Film Festival Golden Lion**: [View Grid](https://www.themoviedb.org/list/8648854?view=grid)
+* 🐻 **Berlinale Film Festival Golden Bear**: [View Grid](https://www.themoviedb.org/list/8648852?view=grid)
 * 🎭 **BAFTA Award for Best Film**: [View Grid](https://www.themoviedb.org/list/8648848?view=grid)
 * 🌐 **Golden Globe Best Drama**: [View Grid](https://www.themoviedb.org/list/8648849?view=grid)
 * 🥂 **Golden Globe Best Musical/Comedy**: [View Grid](https://www.themoviedb.org/list/8648850?view=grid)
-* 🕊️ **Indie Spirit Award for Best Feature**: [View Grid](https://www.themoviedb.org/list/8648851?view=grid)
-* 🐻 **Berlinale Film Festival Golden Bear**: [View Grid](https://www.themoviedb.org/list/8648852?view=grid)
-* 🦁 **Venice Film Festival Golden Lion**: [View Grid](https://www.themoviedb.org/list/8648854?view=grid)
 * 🍁 **Toronto Film Festival Audience Award**: [View Grid](https://www.themoviedb.org/list/8648855?view=grid)
+* 🕊️ **Indie Spirit Award for Best Feature**: [View Grid](https://www.themoviedb.org/list/8648851?view=grid)
 
 ### 🎬 Tier 4: Cinephile Communities & Curations
 
@@ -65,7 +211,7 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🤠 **LB Top 100 Western Films**: [View Grid](https://www.themoviedb.org/list/8714335?view=grid)
 * 📝 **Roger Ebert's Great Movies**: [View Grid](https://www.themoviedb.org/list/8649219?view=grid)
 
-### 📚 Tier 5: Ultimate Collection Targets (1000+ Films)
+### 📚 Tier 5: Ultimate Collection Targets
 
 * 🎥 **TSPDT - 1000 Greatest Films**: [View Grid](https://www.themoviedb.org/list/8648821?view=grid)
 * 📖 **1001 Movies You Must See Before You Die**: [View Grid](https://www.themoviedb.org/list/8649029?view=grid)
@@ -132,47 +278,6 @@ The following TMDb lists are fully maintained by automated crawlers and ETL pipe
 * 🇹🇭 **Thailand**: [Niche](https://www.themoviedb.org/list/8702701?view=grid)
 * 🇪🇺 **Europe**: [Trending](https://www.themoviedb.org/list/8702702?view=grid) | [Classics](https://www.themoviedb.org/list/8702703?view=grid)
 * 🎨 **Animation**: [Classics](https://www.themoviedb.org/list/8702704?view=grid)
-
-## ✨ Core Features
-
-* **🏆 Automated Top List Maintenance**
-  * Supports IMDb/Douban Top 250/Letterboxd/TSPDT Lists, **9 Major Film Awards Worldwide**, and **Douban's 28 movie genre categories with multi-dimensional lists (Trending, Top 20, Classics, Niche Masterpieces), plus Douban TV region and type lists**.
-  * **Metadata Sync**: Fetches TMDb list descriptions and writes them to the Emby Collection `Overview`.
-  * **Global Favorites**: Automatically adds generated collections to "My Favorites" for all Emby users, boosting visibility.
-* **🖼️ Poster Injection & Async Performance Engine**
-  * **Eliminate UI Freezes**: Prevents Emby server crashes or scraping bottlenecks caused by generating default 4-grid collage thumbnails.
-  * **Async Queue Injection**: Introduces a global task queue with dynamic delayed batch processing. Decouples collection creation from poster injection to significantly reduce execution time and prevent SQLite database locks/overwrites.
-  * **Smart Fetching Strategies**: Highly customizable poster extraction logic (absolute list top vs. highest-ranked in local library; newest premiere vs. latest added) for a personalized poster wall.
-  * **Collection Cover Repair**: Repairs coverless collections using a poster from the earliest released media item in the collection.
-  * **Movie & TV Cover Repair**: Adds TMDb original-language posters to movies and TV shows missing a primary image. Existing covers are skipped. Missing TMDb IDs or unavailable original-language posters are reported without substituting another language.
-* **🍿 MoviePilot Integration**
-  * **Smart Subscription Policies**: Automatically triggers MoviePilot API to subscribe to missing media. **Supports flexible policies: toggle per list (True/False) or set a rank threshold (Integer, e.g., 3, to only subscribe to the top 3 missing items), providing precise control over resource acquisition.**
-  * **Custom Exclusion Lists**: Configure separate movie and series exclusion lists (`MP_EXCLUDE_MOVIE_IDS` / `MP_EXCLUDE_SERIES_IDS`) to skip specific media from auto-downloading, with intercepted counts displayed in the final report.
-  * **Anti-Duplication**: Cross-checks existing MP subscriptions before pushing requests to avoid duplicate entries.
-* **📁 Gap Analysis & Reporting**
-  * Precise push notifications detailing missing items, their rankings, `{tmdb-id}`, and dynamic stats for successful, existing, and excluded MP subscriptions.
-  * **Cover Repair Report**: Reports collection, movie and TV repair counts separately, with a combined list of successful repairs and reasons for failures.
-  * **Adaptive Formatting**: Uses a concise overview mode for genre lists to prevent notifications from being truncated by messaging apps.
-* **🇨🇳 Regional Media Aggregation**
-  * Automatically groups Chinese-language media based on directory keywords and TMDb origin country codes (`CN/HK/TW`).
-* **🛡️ Robust Error Handling**
-  * Optimized API request paths for various Emby versions to bypass JSON parsing exceptions, ensuring stable execution in complex network environments.
-
-## 📸 Showcase
-
-![Emby Collection Sync Demo](assets/images/showcase.png)
-*(Auto-generated customized poster walls and collection categories in Emby)*
-
-## 🚀 Quick Start (via Qinglong Panel)
-
-1. **Deploy Script**: Place `emby_collection_sync.py` into the `scripts` directory of your Qinglong Panel.
-2. **Install Dependencies**: Install the `requests` and `urllib3` Python packages.
-3. **Configuration**: Open the script and configure your **Emby**, **TMDb**, and **MoviePilot** URLs and API Keys.
-4. **Subscription Policy**: Adjust `mp_subscribe` in the `CUSTOM_LISTS` config:
-   - `True`: Subscribe to all missing items.
-   - `False`: Report only.
-   - `Integer (e.g., 3)`: Only subscribe to missing items ranked within the top 3.
-5. **Cron Job**: Create a new scheduled task with the command `task emby_collection_sync.py` (Recommended cron expression: `0 30 8 * * *` for daily execution at 08:30).
 
 ## 📈 Star History
 

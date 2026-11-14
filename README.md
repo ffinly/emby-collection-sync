@@ -2,29 +2,175 @@
 
 **简体中文** | [繁體中文](README.zh-TW.md) | [English](README.en.md)
 
----
+将 TMDb 榜单同步为 Emby 合集，支持缺失报告、MoviePilot 自动订阅、国家/地区影视整理和原语言海报。适用于青龙面板，也可以直接使用 Python 运行。
 
-🚀 **面向 Emby 影音库的全自动合集管理与追新补片流水线。**
+## 🎬 与 Emby Companion 配合
 
-一键同步 IMDb/豆瓣 Top 250/Letterboxd/TSPDT 等权威主榜、全球 9 大权威电影奖项、豆瓣电影 28 大分类多维度榜单（近期热门、Top 20、高分经典、冷门佳作）及豆瓣电视剧地区与类型榜单，智能排查本地缺失，**并支持自定义排除列表联动 MoviePilot 实现自动化补片**。系统支持自动聚合华语影视，并**原生支持原语言海报直入与灵活的智能抓取策略，结合底层异步队列引擎，彻底解决 Emby 生成默认四宫格封面导致的卡死痛点**。实现从全自动化整理到观影的完整闭环。
+[Emby Companion](https://github.com/ffinly/emby-companion) 是一款 macOS 观影助手，支持榜单选片、入库与缺集核对、手动订阅，并可调用本地播放器观看。应用使用本项目的预置榜单，本脚本负责定时整理 Emby 服务端合集；两者可独立使用，也可搭配使用。
 
-## 🎬 配合 Emby Companion 使用
+## ✨ 核心特性
 
-想在 Mac 上更直观地浏览片单、查看 Emby 入库与缺集情况，推荐使用 [Emby Companion（Emby 观影助手）](https://github.com/ffinly/emby-companion)。你可以浏览榜单和 Emby 合集、挑选想看的影视、调用外部播放器，并按需通过 MoviePilot 手动订阅缺失内容。
+- **🏆 榜单自动同步**：内置 157 个 IMDb、豆瓣、Letterboxd、TMDb 等榜单，支持添加自己的 TMDb 列表、同步简介并报告缺失影片。
+- **📌 每日重建置顶**：保留创建顺序，在 Emby 按添加日期降序排列时，让本次生成的合集排在其他旧合集前面；完成并校验新合集后再删除旧合集。
+- **🌏 国家／地区合集**：默认 `CN` 合并中国大陆、香港、台湾、澳门；可增加其他代码，不写 `CN` 则不生成国产合集，留空则关闭国家合集。
+- **🌐 单文件与三语支持**：只需部署 `emby_collection_sync.py`；常用参数在最前面，内置简体中文、繁体中文和英文日志、通知及榜单名称。
+- **⭐ 收藏例外用户名**：默认自动收藏，可按 Emby 用户名设置例外，也可以关闭自动收藏。
+- **🍿 MoviePilot 自动订阅**：支持全量、前 N 名、仅报告三种榜单策略；电影与剧集分别排除，电视剧按季检查订阅。
+- **🖼️ 海报与运行报告**：原语言海报、缺主封面修复、缺失详情、订阅与修复统计；提供缓存、分页校验、连接配置检查和日志密钥脱敏。
 
-本项目负责在服务端自动整理 Emby 合集，并按配置联动 MoviePilot 补片；Emby Companion 提供 Mac 上的选片与观看入口，配合形成 **片单 → Emby 合集 → Mac 上选片与播放** 的工作流。
+## 📸 运行效果展示
 
-两个项目均可独立使用，无需为了使用其中一个而部署另一个。
+![Emby 合集展示](assets/images/showcase.png)
+
+*Emby 合集海报墙与分类展示。*
+
+## 🚀 快速开始 (以青龙面板为例)
+
+需要 **Python 3.9+**、可访问的 Emby 服务器和 TMDb API Key。MoviePilot 为可选功能。
+
+1. 把 [emby_collection_sync.py](emby_collection_sync.py) 放入青龙 `scripts` 目录；无需额外的 Python 配置文件。
+2. 在青龙「依赖管理 → Python3」安装 `requests`、`urllib3`。
+3. 在青龙「环境变量」添加 `EMBY_URL`、`EMBY_API_KEY`、`TMDB_API_KEY`；填写方式与可选变量见[连接配置](#连接配置默认读取环境变量)。
+4. 修改脚本顶部的语言、国家码、收藏例外等参数，以及下方榜单的订阅策略；同步逻辑无需修改。
+5. 执行 `task emby_collection_sync.py`，直接同步合集并按配置处理收藏、订阅与通知。
+6. 每天执行一次即可。标准五段 cron 示例：`30 8 * * *`（每天 08:30）；如果你的面板使用含秒的六段格式，则为 `0 30 8 * * *`。时间以面板配置的时区为准。
+
+青龙通知沿用 `notify.send`，在面板通知设置中配置渠道即可；没有 `notify` 模块时只在控制台输出，不要求安装同名第三方包。
+
+### 脚本结构与多语言配置
+
+| 脚本区域 | 内容 |
+| --- | --- |
+| 顶部常用参数 | 语言、国家码、收藏例外、连接信息、代理和海报策略 |
+| 榜单配置 | 核心榜单、豆瓣分类、历史名称映射与图标 |
+| 多语言数据 | 榜单译名、日志与通知文案、国家／地区名称 |
+| 同步逻辑 | API 请求、每日重建、订阅、收藏与通知 |
+
+脚本前面放常用参数，后面依次放榜单、翻译和同步逻辑。`LIST_NAMES` 按榜单 ID 配置 `zh-CN`、`zh-TW`、`en` 名称；`MESSAGES` 以英文为键，按 `zh-CN`、`zh-TW`、`en` 保存日志和通知文案；`COUNTRY_LABELS` 配置国家／地区的三语名称，`COUNTRY_ALIASES` 补充别名，`COUNTRY_LEGACY_LABELS` 保留旧译名用于合集更名匹配。修改文案时保留 `{name}` 等占位符。只需要切换语言时，改 `LANGUAGE` 即可。
+
+脚本顶部说明和配置注释提供三语；同步逻辑使用英文代码和注释，实际显示文案从内置三语表读取。
+
+只需为 `emby_collection_sync.py` 建立定时任务。更新脚本前，请备份并合并自己的参数和榜单策略。
+
+### 脚本顶部的常用参数
+
+配置注释同时提供简体中文、繁体中文和英文；日志与通知只显示 `LANGUAGE` 选中的语言。
+
+```python
+LANGUAGE = "zh-CN"                    # zh-CN / zh-TW / en
+COUNTRY_CODES = ["CN"]                 # CN 合并大陆、香港、台湾、澳门；[] 关闭国家合集
+FAVORITES_ENABLE = True                # 默认继续全员自动收藏
+FAVORITES_EXCLUDE_USERS = ["kids"]      # 例外：Emby 用户名，精确匹配、区分大小写
+MP_ENABLE = False                     # 开启后需配置 MP_URL 和 MP_API_TOKEN
+USE_PROXY = False                     # 开启后还需填写 PROXY_URL
+EMBY_VERIFY_SSL = True                 # 验证 Emby HTTPS 证书；自签证书可设 False
+MP_VERIFY_SSL = True                   # 验证 MoviePilot HTTPS 证书；自签证书可设 False
+LIST_POSTER_MODE = "library"           # library：库内榜单第一；list：榜单第一
+DOMESTIC_POSTER_MODE = "premiere"      # premiere：最新上映；added：最新入库
+POSTER_SIZE = "w780"                   # w780 / original
+COUNTRY_CACHE_DAYS = 90                # 产地缓存有效天数，必须大于 0
+```
+
+上面的 `kids` 是示例，脚本默认例外名单为空。填写 **Emby 的实际用户名**，不是用户 ID；例外用户不会被脚本自动添加收藏，也不会主动清除其已有收藏。每日重建会产生新合集 ID，旧合集上的个人收藏状态不会被迁移。这个设置不是内容访问控制：儿童账户能否看到某个合集，仍需在 Emby 中设置权限。
+
+`LANGUAGE` 同时影响脚本日志、通知、内置榜单名称和国家合集名称。脚本向 TMDb 请求对应语言的标题；实际返回内容取决于 TMDb 是否提供翻译。自定义榜单名称保持原样，第三方 API 返回的错误说明也保留原文。
+
+### 连接配置（默认读取环境变量）
+
+默认读取环境变量；也可以按脚本配置区的注释示例，替换对应赋值行。手动赋值后该项以填写的值为准，其他未修改的项目仍读环境变量。例如脚本中保留的是：
+
+```python
+MP_URL = os.getenv("MP_URL")
+# MP_URL = "http://192.168.1.10:3000"
+MP_API_TOKEN = os.getenv("MP_API_TOKEN")
+# MP_API_TOKEN = "your-mp-api-token"
+```
+
+以上手动值只是注释，不会默认启用。Emby、TMDb、MoviePilot、代理和 TMDb v4 token 都提供相同写法。`EMBY_SYNC_CACHE` 用环境变量指定国家缓存路径。
+
+| 变量 | 必填条件 | 说明 |
+| --- | --- | --- |
+| `EMBY_URL` | 必填 | Emby 根地址，如 `http://192.168.1.100:8096`，不要再加 `/emby` |
+| `EMBY_API_KEY` | 必填 | Emby API Key |
+| `TMDB_API_KEY` | 必填 | TMDb v3 API Key |
+| `MP_URL` | `MP_ENABLE = True` | MoviePilot 服务地址 |
+| `MP_API_TOKEN` | `MP_ENABLE = True` | MoviePilot API Token |
+| `PROXY_URL` | `USE_PROXY = True` | TMDb API 和图片请求使用的 HTTP(S) 代理地址 |
+| `TMDB_ACCESS_TOKEN` | 可选 | TMDb API Read Access Token；v3 列表返回 404 时，用它尝试 v4。私有列表需要有权限的用户 token |
+| `EMBY_SYNC_CACHE` | 可选 | 国家查询缓存文件的完整路径，默认放在脚本旁的 `.emby_country_cache.json` |
+
+缺少必填连接配置或参数错误时，脚本会在连接服务器之前直接指出问题。HTTPS 默认验证证书；关闭 Emby 或 MoviePilot 的验证不会影响 TMDb API 和图片站的验证。
+
+### 按国家/地区生成合集
+
+- 默认 `COUNTRY_CODES = ["CN"]`：生成「国产电影」「国产电视剧」。**本脚本的 `CN` 是合并分组，包含中国大陆、香港、台湾、澳门，对应 TMDb 代码 `CN/HK/TW/MO`**，不是仅匹配 TMDb 的单个 `CN` 代码。
+- 不写 `CN` 就不生成国产合集。例如 `["JP", "US"]` 只生成日本、美国的电影与剧集合集；`[]` 不生成任何国家／地区合集，其他榜单同步照常运行。无需另设开关。
+- `HK`、`TW`、`MO` 也可以单独填写，生成各自的地区合集；与 `CN` 同时填写时，相关资源可以同时进入合并合集和独立地区合集。
+- 所有国家／地区合集统一使用 TMDb 国家码分类：电影读取 `production_countries`，剧集读取 `origin_country`，`CN` 电影也遵循此规则。联合制作可以进入多个合集；这是产地分类，不是对白语言分类。
+- 离线内置 272 个国家／地区的完整三语名称，包含 `SU`（苏联）、`XC`（捷克斯洛伐克）等历史地区。`NZ` 会显示为「新西兰／紐西蘭／New Zealand」，国家名称查询无需额外网络请求。
+- 配置支持两位代码和已知别名／名称：`UK` 自动转为 `GB`，`USA` 转为 `US`，`USSR` 转为 `SU`；忽略首尾空格和大小写，归一后自动去重。仍建议填写代码；填写中国相关名称并归一为 `CN` 时，仍执行前述四地区合并规则。无法识别的配置会在连接服务器前报错，不进行模糊猜测。
+- 更新名称时会识别旧译名及旧的代码式合集名称，例如将 `NZ电影` 对应到 `新西兰电影`，避免正常重建后留下重复合集。
+- TMDb 查询结果默认缓存 90 天，可通过 `COUNTRY_CACHE_DAYS` 调整；有效期内直接使用缓存，到期后重新查询。查询返回 404（条目不存在）时，仅跳过该条目的国家分类并清除其旧产地缓存，继续处理其他条目，不改动 Emby 媒体库中的影片或剧集；下次运行会重新尝试查询。超时、限流或其他查询故障会优先使用历史缓存；没有可用缓存时保留该媒体类型的旧国家合集。缺少 TMDb ID 的条目会记录并跳过国家分类。
+
+从配置中删除 `CN`、其他国家码或榜单，只停止后续生成和重建，不会自动删除已经存在的合集。
+
+### 榜单与 MoviePilot 策略
+
+`emby_collection_sync.py` 中保留 `CUSTOM_LISTS`、`DOUBAN_GENRE_LISTS`、`DOUBAN_TV_LISTS` 三组配置。可以删除不需要的条目，也可以添加自己的 TMDb 列表，不限于下方公开榜单。将条目添加到相应数组中；`id` 填写 TMDb 列表网址 `/list/` 后的数字，不要填写完整网址。以下 `123456` 仅为格式示例，请替换为自己的列表 ID：
+
+```python
+{"name": "我的片单", "id": "123456", "type": "Movie",
+ "mp_subscribe": 3, "notify_missing": True}
+```
+
+`type` 为 `Movie` 或 `Series`；不写时按电影处理。`mp_subscribe` 可为 `True`（缺失即订阅）、`False`（仅报告）、正整数（只订阅榜单前 N 名中的缺失项，填 `0` 等同 `False`）。只有 `MP_ENABLE = True` 时才真正提交订阅。`notify_missing` 控制核心榜单的缺失详情；分类榜单沿用精简统计。
+
+电影、剧集排除列表分别配置在 `MP_EXCLUDE_MOVIE_IDS`、`MP_EXCLUDE_SERIES_IDS`，数字和字符串 ID 均可。电视剧继续按季检查和订阅，季 0 表示特别篇。防重查询失败时停止对应订阅流程，避免把错误响应当成“尚未订阅”。
+
+## 📌 每日重建与排序
+
+按「豆瓣分类 → 核心榜单 → 国家合集」顺序执行。豆瓣分类与核心榜单分别倒序创建；国家合集先处理剧集、再处理电影，每种媒体类型内按国家码配置倒序创建，让靠前的配置项较晚创建。因此在 Emby 选择 **添加日期降序**，本次新建的这一组合集会排在其他旧合集前面。之后若有其他新合集创建，下次运行会再次置顶。
+
+重建时先创建临时合集，分批添加并校验全部条目、写入正式名称，再删除旧合集。创建、添加或校验失败时保留旧合集。每次成功重建都会产生新的合集 ID，并按配置重新生成海报。
+
+**同步目标按配置名称及历史名称匹配**。请把配置中的名称留给脚本使用：手工创建的同名合集也会被视为同步目标。切换语言时会识别内置榜单的旧语言名称，避免正常切换后留下重复合集。不同时运行两个同步任务；若任务被强制中断，可能留下名称含 `[sync-...]` 的临时合集，可确认后手工删除。
+
+榜单拉取失败或分页不完整时不会重建该合集，也不会按残缺榜单提交订阅；空榜单或匹配不足两部时保留原合集。国家合集至少匹配一部才重建。匹配数量只决定是否重建合集，不影响完整榜单中缺失条目的订阅策略。其他不同名合集不会参与重建，但「缺封面修复」步骤仍会检查它们。
+
+## 🖼️ 海报与报告
+
+榜单合集海报按榜单第一或库内第一选择；国家合集按最新上映或入库排序，使用首个能获取到海报的条目。合集优先使用原语言海报，没有时可使用 TMDb 的其他可用海报。缺主封面的电影和剧集仅使用原语言海报，不覆盖已有主封面。海报任务在主流程之后**顺序执行**，不是异步并发。
+
+默认下载 `w780` 海报以减少流量，可改回 `original`。上传新图前保留旧图。通知包含核心榜单明细、分类概览、缺失前 3 条、订阅和封面修复统计，并显示失败/跳过的合集。分类概览统计匹配达标的合集数量，不代表成功重建数量；重建失败会另行列出。
+
+## 🐍 不使用青龙时运行
+
+将 [emby_collection_sync.py](emby_collection_sync.py) 和 [requirements.txt](requirements.txt) 下载到同一目录，在终端进入该目录后执行以下命令（Linux/macOS）：
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements.txt
+export EMBY_URL="http://192.168.1.100:8096"
+export EMBY_API_KEY="你的Emby密钥"
+export TMDB_API_KEY="你的TMDb密钥"
+python3 emby_collection_sync.py
+```
+
+定时运行时，在自己的任务环境中提供这些变量，并使用虚拟环境的 Python 完整路径。日志会对密钥和 URL 中的认证信息脱敏；手动填写的实际密钥请保留在自己的脚本副本中。
 
 ## 🔗 线上公开最新榜单列表
 
 以下 TMDB 列表完全由自动化爬虫与 ETL 流水线自动维护。**系统会在每天早上 7:30 (UTC+8) 定时执行数据抓取、比对与同步更新**，确保榜单排名与官方时刻保持一致。
 
-### 🏆 第一/二梯队：大众必看与影史殿堂
+### 🏆 第一梯队：大众必看
 
 * 🍿 **IMDb Top 250 Movies**: [查看网格墙视图](https://www.themoviedb.org/list/8647021?view=grid)
 * 📺 **IMDb Top 250 TV Shows**: [查看网格墙视图](https://www.themoviedb.org/list/8647022?view=grid)
 * 🎞️ **豆瓣电影 Top 250**: [查看网格墙视图](https://www.themoviedb.org/list/8647023?view=grid)
+
+### 🏛️ 第二梯队：影史殿堂
+
 * 🏛️ **S&S Directors - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649058?view=grid)
 * 🏛️ **S&S Critics - Greatest Films**: [查看网格墙视图](https://www.themoviedb.org/list/8649050?view=grid)
 * ⭐ **AFI Top 100 (2007)**: [查看网格墙视图](https://www.themoviedb.org/list/8649041?view=grid)
@@ -36,13 +182,13 @@
 
 * 🏆 **奥斯卡历届最佳影片**: [查看网格墙视图](https://www.themoviedb.org/list/8648843?view=grid)
 * 🌿 **戛纳电影节金棕榈奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648844?view=grid)
+* 🦁 **威尼斯电影节金狮奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648854?view=grid)
+* 🐻 **柏林电影节金熊奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648852?view=grid)
 * 🎭 **英国电影学院奖最佳影片**: [查看网格墙视图](https://www.themoviedb.org/list/8648848?view=grid)
 * 🌐 **金球奖最佳剧情片**: [查看网格墙视图](https://www.themoviedb.org/list/8648849?view=grid)
 * 🥂 **金球奖最佳音乐/喜剧片**: [查看网格墙视图](https://www.themoviedb.org/list/8648850?view=grid)
-* 🕊️ **独立精神奖最佳长片**: [查看网格墙视图](https://www.themoviedb.org/list/8648851?view=grid)
-* 🐻 **柏林电影节金熊奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648852?view=grid)
-* 🦁 **威尼斯电影节金狮奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648854?view=grid)
 * 🍁 **多伦多电影节人民选择奖**: [查看网格墙视图](https://www.themoviedb.org/list/8648855?view=grid)
+* 🕊️ **独立精神奖最佳长片**: [查看网格墙视图](https://www.themoviedb.org/list/8648851?view=grid)
 
 ### 🎬 第四梯队：高阶影迷社区与名家策展
 
@@ -77,7 +223,7 @@
 * 🔴 **Every NEON Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649218?view=grid)
 * 🎟️ **Every MUBI Film**: [查看网格墙视图](https://www.themoviedb.org/list/8649220?view=grid)
 
-### 📈 第七梯队：实时口碑与趋势榜 (Trending & Popular)
+### 📈 第七梯队：实时口碑与趋势榜
 
 * 📈 **豆瓣 - 一周口碑电影榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648547?view=grid)
 * 📺 **豆瓣 - 华语口碑剧集榜**: [查看网格墙视图](https://www.themoviedb.org/list/8648548?view=grid)
@@ -132,47 +278,6 @@
 * 🇹🇭 **泰剧**: [冷门佳作](https://www.themoviedb.org/list/8702701?view=grid)
 * 🇪🇺 **欧洲剧**: [近期热门](https://www.themoviedb.org/list/8702702?view=grid) | [高分经典](https://www.themoviedb.org/list/8702703?view=grid)
 * 🎨 **动画剧集**: [高分经典](https://www.themoviedb.org/list/8702704?view=grid)
-
-## ✨ 核心特性
-
-* **🏆 顶级榜单全自动维护**
-  * 支持 IMDb/豆瓣 Top 250/Letterboxd/TSPDT 主榜单、**全球 9 大权威电影奖项**、**豆瓣电影 28 大分类多维度榜单（近期热门、Top 20、高分经典、冷门佳作）及豆瓣电视剧地区与类型榜单**。
-  * **自动简介同步**：抓取 TMDb 列表描述并写入 Emby 合集 `Overview` 字段。
-  * **全员收藏**：自动将生成的合集加入所有 Emby 用户的“我的收藏”，提升常用榜单的曝光度。
-* **🖼️ 海报直入与异步性能引擎**
-  * **告别四宫格假死**：彻底终结 Emby 默认生成拼图时导致的服务器卡死或刮削阻塞问题。
-  * **异步队列注入**：引入全局任务队列与动态延时结算机制，将海报注入与合集创建解耦，大幅缩短运行时间并完美规避 SQLite 数据库锁死覆盖问题。
-  * **智能抓取策略**：支持高度自定义的海报提取逻辑（榜单绝对第一 vs 库内拥有最高排名；最新上映 vs 最新入库），打造个性化封面墙。
-  * **合集封面修复**：扫描库内无封面的合集，提取合集内最早上映影视的海报进行修复。
-  * **电影与剧集封面修复**：为缺少主封面的电影和剧集补充 TMDb 原语言海报。已有主封面自动跳过；缺少 TMDb ID 或未获取到原语言海报时记录原因，不使用其他语言图片替代。
-* **🍿 MoviePilot 联动自动补片**
-  * **精准订阅策略**：比对缺失后自动调用 MoviePilot API。**支持按榜单独立配置订阅模式：全量订阅 (True)、完全关闭 (False) 或设置排名阈值（如传入整数 3，则仅自动订阅榜单前 3 名的缺失项），精细化管理资源获取。**
-  * **防误杀排除列表**：支持配置独立的电影/剧集 TMDb ID 排除列表 (`MP_EXCLUDE_MOVIE_IDS` / `MP_EXCLUDE_SERIES_IDS`)，智能跳过无需订阅的特定条目，并在推送报告中体现拦截统计。
-  * **防重机制**：推送前自动比对 MP 已有订阅，避免重复下发任务。
-* **📁 智能查漏补缺与报告**
-  * 详细的推送通知报告：精确列出缺失影片、排名及对应的 `{tmdb-id}`，并动态展示 MP 订阅成功、已有及排除的数量。
-  * **封面修复报告**：分别统计合集、电影和剧集的修复数量，并统一展示成功修复清单及失败原因。
-  * **自适应通知排版**：针对分类榜单采用精简概览模式，防止消息过长被通讯软件截断。
-* **🇨🇳 国产/华语特色聚合**
-  * 通过目录关键词与 TMDb 产地代码（`CN/HK/TW`）自动聚合国产影视资源。
-* **🛡️ 工业级容错机制**
-  * 针对部分 Emby 版本优化了 API 请求路径，规避 JSON 解析异常，确保脚本在复杂网络环境下稳定运行。
-
-## 📸 运行效果展示
-
-![Emby Collection Sync Demo](assets/images/showcase.png)
-*(图：全自动生成的 Emby 专属海报墙与合集分类)*
-
-## 🚀 快速开始 (以青龙面板为例)
-
-1. **放置脚本**：将 `emby_collection_sync.py` 放入青龙面板的 `scripts` 文件夹。
-2. **安装依赖**：在青龙的“依赖管理”中安装 Python3 依赖：`requests` 和 `urllib3`。
-3. **填写配置**：打开脚本，在配置区域填入你的 **Emby**、**TMDb** 和 **MoviePilot** 地址及对应密钥。
-4. **订阅策略定制**：在脚本 `CUSTOM_LISTS` 中调整 `mp_subscribe` 参数：
-   - `True`: 只要缺失即订阅。
-   - `False`: 仅在通知中报告缺失，不执行订阅。
-   - `整数 (如 3)`: 仅当该条目在榜单前 3 名且库内缺失时，才发给 MP 执行下载。
-5. **定时任务**：新增任务，命令为 `task emby_collection_sync.py`（建议定时规则：`0 30 8 * * *`）。
 
 ## 📈 Star History
 
